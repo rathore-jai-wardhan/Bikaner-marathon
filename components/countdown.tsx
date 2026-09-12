@@ -30,7 +30,7 @@ export default function Countdown() {
   ]
 
   return (
-    <div className="flex gap-6 justify-center">
+    <div className="flex gap-3 sm:gap-6 justify-center px-4">
       {units.map((u) => (
         <div key={u.label} className="text-center">
           <div className="text-4xl font-bold" style={{ color: 'var(--gold)' }}>
