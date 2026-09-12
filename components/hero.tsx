@@ -6,7 +6,7 @@ export default function Hero() {
       <img
         src="/marathon poster.png"
         alt="Bikaner Marathon"
-        className="max-w-sm mx-auto rounded-lg shadow-lg mb-8"
+        className="block max-w-sm mx-auto rounded-lg shadow-lg mb-8"
       />
       <h2 className="text-2xl heading-font mb-2" style={{ color: 'var(--maroon)' }}>
         Registration Opening Soon
