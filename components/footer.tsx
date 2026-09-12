@@ -8,7 +8,7 @@ export default function Footer() {
         <a href="https://www.instagram.com/bikanermarathon/" target="_blank" className="hover:text-[var(--gold)]">
           Bikaner Marathon page
         </a>
-        <span>Contact: +91 9462475332</span>
+        <span>To become a sponsor, contact: +91 9462475332</span>
       </div>
     </footer>
   )

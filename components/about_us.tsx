@@ -5,9 +5,8 @@ export default function AboutUs() {
         About us
       </h2>
       <p className="leading-relaxed" style={{ color: 'var(--charcoal)' }}>
-        Bikaner Run Club is a growing running community built around one simple idea — getting Bikaner moving.
-        What started with running has grown into a community that brings together runners, fitness enthusiasts and people simply looking to become more active. Through regular runs, community sessions, collaborations and unique running experiences, BRC is building a stronger running culture in the city.
-        We run together, we show up, and we keep moving forward — one run at a time.
+       The Bikaner Marathon is a celebration of running, endurance and the spirit of Bikaner. Bringing together runners from across the city and beyond, the marathon aims to create an experience that goes beyond the finish line — connecting people through sport, community and the heritage of the city.
+       From the first stride to the final finish, Bikaner Marathon is about showing up, going the distance and moving forward together.
       </p>
     </section>
   )
