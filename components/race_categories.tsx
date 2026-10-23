@@ -1,7 +1,8 @@
 const categories = [
-  { distance: '5K', name: 'Fun Run' },
-  { distance: '10K', name: 'Challenge Run' },
-  { distance: '21K', name: 'Half Marathon' },
+  { distance: '2K', name: 'Kids Run', price: 'Free' },
+  { distance: '5K', name: 'Fun Run' , price: '₹ 299' },
+  { distance: '10K', name: 'Challenge Run', price: '₹ 399' },
+  { distance: '21K', name: 'Half Marathon', price: '₹ 499' },
 ]
 
 export default function RaceCategories() {
@@ -22,6 +23,9 @@ export default function RaceCategories() {
             </div>
             <div className="mt-2 text-sm" style={{ color: 'var(--charcoal)' }}>
               {cat.name}
+            </div>
+            <div className="mt-4 text-xl font-bold" style={{ color: 'var(--maroon)' }}>
+              {cat.price}
             </div>
           </div>
         ))}
