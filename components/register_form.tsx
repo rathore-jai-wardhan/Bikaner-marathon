@@ -187,7 +187,7 @@ export default function RegisterForm({
   if (status === "done") {
     return (
       <div className="rounded-xl bg-green-100 p-5 text-green-900">
-        <p className="font-semibold">You're registered! See you at the start line.</p>
+        <p className="font-semibold">You&apos;re registered! See you at the start line.</p>
         <p className="mt-2">Your registration ID: <strong>{code}</strong></p>
         <p className="mt-2 text-sm">A confirmation will be sent to your email.</p>
       </div>
@@ -197,7 +197,7 @@ export default function RegisterForm({
   if (status === "verifying") {
     return (
       <p className="rounded-xl bg-white p-5 text-black">
-        Confirming your payment. Please don't close this page.
+        Confirming your payment. Please don&apos;t close this page.
       </p>
     );
   }
@@ -292,7 +292,7 @@ export default function RegisterForm({
 
       {isKids && (
         <div>
-          <label className={labelClass}>Parent or guardian's full name</label>
+          <label className={labelClass}>Parent or guardian&apos;s full name</label>
           <input className={inputClass} value={form.guardianName}
             onChange={(e) => set("guardianName", e.target.value)} />
         </div>

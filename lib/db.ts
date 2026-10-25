@@ -1,7 +1,16 @@
-import { neon } from "@neondatabase/serverless";
+   import { neon } from "@neondatabase/serverless";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL is not set");
-}
+   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   type Row = Record<string, any>;
+   type Sql = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<Row[]>;
 
-export const sql = neon(process.env.DATABASE_URL);
+   let client: ReturnType<typeof neon> | undefined;
+
+   export const sql: Sql = (strings, ...values) => {
+     if (!client) {
+       const url = process.env.DATABASE_URL;
+       if (!url) throw new Error("DATABASE_URL is not set");
+       client = neon(url);
+     }
+     return client(strings, ...values) as Promise<Row[]>;
+   };
