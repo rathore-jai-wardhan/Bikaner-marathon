@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { STATES } from "../lib/state";
+import { citiesForState, OTHER_CITY_VALUE } from "../lib/cities";
 
 type Category = {
   id: string;
@@ -85,9 +86,28 @@ export default function RegisterForm({
   const [message, setMessage] = useState("");
   const [order, setOrder] = useState<Order | null>(null);
   const [code, setCode] = useState("");
+  const [errorField, setErrorField] = useState("");
+  // true when the runner chose "Other" in the city list and types their own town
+  const [cityOther, setCityOther] = useState(false);
 
   function set(name: string, value: string | boolean) {
     setForm((f) => ({ ...f, [name]: value }));
+  }
+
+  // Picking a state clears the city, because the city list depends on the state
+  function changeState(value: string) {
+    setCityOther(false);
+    setForm((f) => ({ ...f, state: value, city: "" }));
+  }
+
+  function changeCitySelect(value: string) {
+    if (value === OTHER_CITY_VALUE) {
+      setCityOther(true);
+      set("city", "");
+    } else {
+      setCityOther(false);
+      set("city", value);
+    }
   }
 
   const selected = categories.find((c) => c.id === form.categoryId) ?? firstCategory;
@@ -96,6 +116,23 @@ export default function RegisterForm({
   const age = ageOnRaceDay(form.dateOfBirth);
   const showGuardianBox = !isKids && age !== null && age < 18;
   const isPaid = selected.price_paise > 0;
+
+  // City list for the chosen state. States with no list just get a text box.
+  const cityOptions = citiesForState(form.state);
+  const showCityInput = cityOther || cityOptions.length === 0;
+  const citySelectValue = cityOther
+    ? OTHER_CITY_VALUE
+    : cityOptions.includes(form.city)
+      ? form.city
+      : "";
+
+  // Highlights the field the server complained about and shows the message under it
+  const inputFor = (name: string) =>
+    errorField === name ? `${inputClass} ring-2 ring-red-500` : inputClass;
+  const fieldError = (name: string) =>
+    errorField === name && message ? (
+      <p className="mt-1 text-sm text-red-700">{message}</p>
+    ) : null;
 
   async function confirmPayment(r: RazorpaySuccess) {
     setStatus("verifying");
@@ -158,6 +195,7 @@ export default function RegisterForm({
     e.preventDefault();
     setStatus("sending");
     setMessage("");
+    setErrorField("");
     try {
       const res = await fetch("/api/register", {
         method: "POST",
@@ -168,6 +206,16 @@ export default function RegisterForm({
       if (!res.ok) {
         setStatus("error");
         setMessage(data.error ?? "Something went wrong.");
+        setErrorField(data.field ?? "");
+        if (data.field) {
+          setTimeout(
+            () =>
+              document
+                .getElementById(data.field)
+                ?.scrollIntoView({ behavior: "smooth", block: "center" }),
+            50
+          );
+        }
         return;
       }
       if (data.requiresPayment) {
@@ -268,16 +316,18 @@ export default function RegisterForm({
         <label className={labelClass}>
           {isKids ? "Child's full name" : "Full name"}
         </label>
-        <input className={inputClass} value={form.fullName}
+        <input id="fullName" className={inputFor("fullName")} value={form.fullName}
           onChange={(e) => set("fullName", e.target.value)} />
+        {fieldError("fullName")}
       </div>
 
       <div>
         <label className={labelClass}>
           {isKids ? "Child's date of birth" : "Date of birth"}
         </label>
-        <input type="date" className={inputClass} value={form.dateOfBirth}
+        <input type="date" id="dateOfBirth" className={inputFor("dateOfBirth")} value={form.dateOfBirth}
           onChange={(e) => set("dateOfBirth", e.target.value)} />
+        {fieldError("dateOfBirth")}
       </div>
 
       <div>
@@ -293,8 +343,9 @@ export default function RegisterForm({
       {isKids && (
         <div>
           <label className={labelClass}>Parent or guardian&apos;s full name</label>
-          <input className={inputClass} value={form.guardianName}
+          <input id="guardianName" className={inputFor("guardianName")} value={form.guardianName}
             onChange={(e) => set("guardianName", e.target.value)} />
+        {fieldError("guardianName")}
         </div>
       )}
 
@@ -302,8 +353,9 @@ export default function RegisterForm({
         <label className={labelClass}>
           {isKids ? "Parent or guardian's mobile number (WhatsApp)" : "Mobile number (WhatsApp)"}
         </label>
-        <input type="tel" className={inputClass} value={form.phone}
+        <input type="tel" id="phone" className={inputFor("phone")} value={form.phone}
           onChange={(e) => set("phone", e.target.value)} />
+        {fieldError("phone")}
         <p className={hintClass}>Your registration confirmation will be sent here.</p>
       </div>
 
@@ -311,48 +363,76 @@ export default function RegisterForm({
         <label className={labelClass}>
           {isKids ? "Parent or guardian's email" : "Email"}
         </label>
-        <input type="email" className={inputClass} value={form.email}
+        <input type="email" id="email" className={inputFor("email")} value={form.email}
           onChange={(e) => set("email", e.target.value)} />
-      </div>
-
-      <div>
-        <label className={labelClass}>City</label>
-        <input className={inputClass} value={form.city}
-          onChange={(e) => set("city", e.target.value)} />
+        {fieldError("email")}
       </div>
 
       <div>
         <label className={labelClass}>State</label>
-        <select className={inputClass} value={form.state}
-          onChange={(e) => set("state", e.target.value)}>
+        <select id="state" className={inputFor("state")} value={form.state}
+          onChange={(e) => changeState(e.target.value)}>
           {STATES.map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
+        {fieldError("state")}
+      </div>
+
+      <div>
+        <label className={labelClass}>City</label>
+        {cityOptions.length > 0 && (
+          <select
+            id={showCityInput ? "citySelect" : "city"}
+            className={showCityInput ? inputClass : inputFor("city")}
+            value={citySelectValue}
+            onChange={(e) => changeCitySelect(e.target.value)}
+          >
+            <option value="">Select your city</option>
+            {cityOptions.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+            <option value={OTHER_CITY_VALUE}>Other (type your city)</option>
+          </select>
+        )}
+        {showCityInput && (
+          <input
+            id="city"
+            autoComplete="off"
+            placeholder="Type your city or town"
+            className={`${inputFor("city")} ${cityOptions.length > 0 ? "mt-2" : ""}`}
+            value={form.city}
+            onChange={(e) => set("city", e.target.value)}
+          />
+        )}
+        {fieldError("city")}
       </div>
 
       <div>
         <label className={labelClass}>T-shirt size</label>
-        <select className={inputClass} value={form.tshirtSize}
+        <select id="tshirtSize" className={inputFor("tshirtSize")} value={form.tshirtSize}
           onChange={(e) => set("tshirtSize", e.target.value)}>
           {sizes.map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
+        {fieldError("tshirtSize")}
       </div>
 
       {!isKids && (
         <>
           <div>
             <label className={labelClass}>Emergency contact name</label>
-            <input className={inputClass} value={form.emergencyName}
+            <input id="emergencyName" className={inputFor("emergencyName")} value={form.emergencyName}
               onChange={(e) => set("emergencyName", e.target.value)} />
+        {fieldError("emergencyName")}
           </div>
 
           <div>
             <label className={labelClass}>Emergency contact mobile</label>
-            <input type="tel" className={inputClass} value={form.emergencyPhone}
+            <input type="tel" id="emergencyPhone" className={inputFor("emergencyPhone")} value={form.emergencyPhone}
               onChange={(e) => set("emergencyPhone", e.target.value)} />
+        {fieldError("emergencyPhone")}
           </div>
         </>
       )}
@@ -373,12 +453,16 @@ export default function RegisterForm({
           <legend className="px-1 text-sm font-semibold">
             Parent or guardian (required because the runner is under 18)
           </legend>
-          <input placeholder="Guardian name" className={`${inputClass} mb-2`}
+          <input id="guardianName" placeholder="Guardian name"
+            className={`${inputFor("guardianName")} mb-2`}
             value={form.guardianName}
             onChange={(e) => set("guardianName", e.target.value)} />
-          <input placeholder="Guardian mobile" type="tel" className={inputClass}
+          {fieldError("guardianName")}
+          <input id="guardianPhone" placeholder="Guardian mobile" type="tel"
+            className={inputFor("guardianPhone")}
             value={form.guardianPhone}
             onChange={(e) => set("guardianPhone", e.target.value)} />
+          {fieldError("guardianPhone")}
         </fieldset>
       )}
 
