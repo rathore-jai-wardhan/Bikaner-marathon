@@ -5,22 +5,13 @@ import { STATES } from "../../../lib/state";
 import { createOrder } from "../../../lib/razorpay";
 import { registrationCode } from "../../../lib/payment";
 import { sendConfirmation } from "../../../lib/email";
+import { cleanPhone, isValidPhone } from "../../../lib/phone";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 // Race day. Used to work out each runner's age. Please confirm the date.
 const EVENT_DATE = "2026-12-27";
-
-function cleanPhone(value: string): string {
-  let digits = value.replace(/\D/g, "");
-  if (digits.length === 12 && digits.startsWith("91")) digits = digits.slice(2);
-  return digits;
-}
-
-function isValidPhone(digits: string): boolean {
-  return /^[6-9]\d{9}$/.test(digits);
-}
 
 function isRealDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -39,7 +30,7 @@ function ageOn(dob: string, onDate: string): number {
 const phoneField = z
   .string()
   .transform(cleanPhone)
-  .refine(isValidPhone, "Please enter a valid 10-digit mobile number.");
+  .refine(isValidPhone, "Please enter a valid 10-digit mobile number");
 
 const schema = z.object({
   categoryId: z.string().trim().min(1).max(10),
@@ -89,8 +80,9 @@ export async function POST(request: Request) {
   // Check 1: is the data valid?
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
+    const issue = parsed.error.issues[0];
     return Response.json(
-      { error: parsed.error.issues[0].message },
+      { error: issue.message, field: String(issue.path[0] ?? "") },
       { status: 400 }
     );
   }
@@ -113,11 +105,11 @@ export async function POST(request: Request) {
   // Check 3: age on race day must fit the category
   const age = ageOn(d.dateOfBirth, EVENT_DATE);
   if (age < 0 || age > 100) {
-    return Response.json({ error: "Please check the date of birth." }, { status: 400 });
+    return Response.json({ error: "Please check the date of birth.", field: "dateOfBirth" }, { status: 400 });
   }
   if (age < category.min_age) {
     return Response.json(
-      { error: `The minimum age for this category is ${category.min_age}.` },
+      { error: `The minimum age for this category is ${category.min_age}.`, field: "dateOfBirth" },
       { status: 400 }
     );
   }
@@ -125,6 +117,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error: `This category is for participants aged ${category.max_age} or under.`,
+        field: "dateOfBirth",
       },
       { status: 400 }
     );
@@ -133,7 +126,7 @@ export async function POST(request: Request) {
   // The T-shirt size must be one of the sizes listed for this category
   if (!category.tshirt_sizes.includes(d.tshirtSize)) {
     return Response.json(
-      { error: "Please choose a T-shirt size from the list." },
+      { error: "Please choose a T-shirt size from the list.", field: "tshirtSize" },
       { status: 400 }
     );
   }
@@ -149,7 +142,7 @@ export async function POST(request: Request) {
     // Kids category: the mobile and email on the form belong to the parent
     if (d.guardianName.length < 2) {
       return Response.json(
-        { error: "Please enter the parent or guardian's name." },
+        { error: "Please enter the parent or guardian's name.", field: "guardianName" },
         { status: 400 }
       );
     }
@@ -157,11 +150,18 @@ export async function POST(request: Request) {
     guardianPhone = d.phone;
   } else {
     const ePhone = cleanPhone(d.emergencyPhone);
-    if (d.emergencyName.length < 2 || !isValidPhone(ePhone)) {
+    if (d.emergencyName.length < 2) {
+      return Response.json(
+        { error: "Please enter an emergency contact name.", field: "emergencyName" },
+        { status: 400 }
+      );
+    }
+    if (!isValidPhone(ePhone)) {
       return Response.json(
         {
           error:
-            "Please enter an emergency contact name and a valid mobile number.",
+            "Please enter a valid 10-digit mobile number for the emergency contact (it must start with 6, 7, 8 or 9).",
+          field: "emergencyPhone",
         },
         { status: 400 }
       );
@@ -171,11 +171,17 @@ export async function POST(request: Request) {
 
     if (age < 18) {
       const gPhone = cleanPhone(d.guardianPhone);
-      if (d.guardianName.length < 2 || !isValidPhone(gPhone)) {
+      if (d.guardianName.length < 2) {
+        return Response.json(
+          { error: "Participants under 18 need a parent or guardian's name.", field: "guardianName" },
+          { status: 400 }
+        );
+      }
+      if (!isValidPhone(gPhone)) {
         return Response.json(
           {
-            error:
-              "Participants under 18 need a parent or guardian's name and mobile number.",
+            error: "Please enter a valid 10-digit mobile number for the parent or guardian.",
+            field: "guardianPhone",
           },
           { status: 400 }
         );
