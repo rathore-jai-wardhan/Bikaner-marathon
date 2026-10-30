@@ -4,7 +4,7 @@ import { sql } from "../../../lib/db";
 import { STATES } from "../../../lib/state";
 import { createOrder } from "../../../lib/razorpay";
 import { registrationCode } from "../../../lib/payment";
-import { sendConfirmation } from "../../../lib/email";
+import { sendNotifications } from "../../../lib/notify";
 import { cleanPhone, isValidPhone } from "../../../lib/phone";
 
 export const dynamic = "force-dynamic";
@@ -27,35 +27,31 @@ function ageOn(dob: string, onDate: string): number {
   return age;
 }
 
-const phoneField = z
-  .string()
-  .transform(cleanPhone)
-  .refine(isValidPhone, "Please enter a valid 10-digit mobile number");
+function isValidEmail(value: string): boolean {
+  return z.email().safeParse(value).success;
+}
 
 const schema = z.object({
   categoryId: z.string().trim().min(1).max(10),
   fullName: z.string().trim().min(2, "Please enter the full name.").max(100),
   dateOfBirth: z.string().refine(isRealDate, "Please enter a valid date of birth."),
   gender: z.enum(["male", "female", "other"]),
-  phone: phoneField,
-  email: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .email("Please enter a valid email address.")
-    .max(200),
+  // Runner's own contact. Only used when the runner is 18 or older on race day.
+  phone: z.string().trim().max(30).default(""),
+  email: z.string().trim().toLowerCase().max(200).default(""),
   city: z.string().trim().min(2, "Please enter your city.").max(100),
   state: z
     .string()
     .refine((v) => STATES.includes(v), "Please choose your state."),
   tshirtSize: z.string().trim().min(1).max(10),
   emergencyName: z.string().trim().max(100).default(""),
-  emergencyPhone: z.string().trim().max(20).default(""),
+  emergencyPhone: z.string().trim().max(30).default(""),
   bloodGroup: z
     .enum(["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])
     .default(""),
   guardianName: z.string().trim().max(100).default(""),
-  guardianPhone: z.string().trim().max(20).default(""),
+  guardianPhone: z.string().trim().max(30).default(""),
+  guardianEmail: z.string().trim().toLowerCase().max(200).default(""),
   consentTerms: z
     .boolean()
     .refine((v) => v === true, "Please accept the Terms, Privacy and Refund policies to continue."),
@@ -131,24 +127,68 @@ export async function POST(request: Request) {
     );
   }
 
-  // Check 4: contact and safety details depend on the category
-  const isKidsCategory = category.max_age !== null && category.max_age < 18;
+  // Check 4: who do we contact?
+  // Under 18 on race day: the runner's own phone/email are NOT used. The
+  // parent/guardian's name, phone and email are required, and the
+  // confirmation WhatsApp and email go to the guardian.
+  // 18 or older: the runner's own phone and email are required.
+  const isMinor = age < 18;
   let guardianName: string | null = null;
   let guardianPhone: string | null = null;
+  let guardianEmail: string | null = null;
   let emergencyName: string | null = null;
   let emergencyPhone: string | null = null;
+  let contactPhone: string;
+  let contactEmail: string;
 
-  if (isKidsCategory) {
-    // Kids category: the mobile and email on the form belong to the parent
+  if (isMinor) {
+    const gPhone = cleanPhone(d.guardianPhone);
     if (d.guardianName.length < 2) {
       return Response.json(
-        { error: "Please enter the parent or guardian's name.", field: "guardianName" },
+        { error: "Participants under 18 need a parent or guardian's name.", field: "guardianName" },
+        { status: 400 }
+      );
+    }
+    if (!isValidPhone(gPhone)) {
+      return Response.json(
+        {
+          error: "Please enter a valid 10-digit mobile number for the parent or guardian.",
+          field: "guardianPhone",
+        },
+        { status: 400 }
+      );
+    }
+    if (!isValidEmail(d.guardianEmail)) {
+      return Response.json(
+        { error: "Please enter a valid email address for the parent or guardian.", field: "guardianEmail" },
         { status: 400 }
       );
     }
     guardianName = d.guardianName;
-    guardianPhone = d.phone;
+    guardianPhone = gPhone;
+    guardianEmail = d.guardianEmail;
+    contactPhone = gPhone;
+    contactEmail = d.guardianEmail;
   } else {
+    const ownPhone = cleanPhone(d.phone);
+    if (!isValidPhone(ownPhone)) {
+      return Response.json(
+        { error: "Please enter a valid 10-digit mobile number.", field: "phone" },
+        { status: 400 }
+      );
+    }
+    if (!isValidEmail(d.email)) {
+      return Response.json(
+        { error: "Please enter a valid email address.", field: "email" },
+        { status: 400 }
+      );
+    }
+    contactPhone = ownPhone;
+    contactEmail = d.email;
+  }
+
+  // Emergency contact: required for every runner, any age
+  {
     const ePhone = cleanPhone(d.emergencyPhone);
     if (d.emergencyName.length < 2) {
       return Response.json(
@@ -168,27 +208,6 @@ export async function POST(request: Request) {
     }
     emergencyName = d.emergencyName;
     emergencyPhone = ePhone;
-
-    if (age < 18) {
-      const gPhone = cleanPhone(d.guardianPhone);
-      if (d.guardianName.length < 2) {
-        return Response.json(
-          { error: "Participants under 18 need a parent or guardian's name.", field: "guardianName" },
-          { status: 400 }
-        );
-      }
-      if (!isValidPhone(gPhone)) {
-        return Response.json(
-          {
-            error: "Please enter a valid 10-digit mobile number for the parent or guardian.",
-            field: "guardianPhone",
-          },
-          { status: 400 }
-        );
-      }
-      guardianName = d.guardianName;
-      guardianPhone = gPhone;
-    }
   }
 
   const isPaid = category.price_paise > 0;
@@ -198,7 +217,7 @@ export async function POST(request: Request) {
     const recent = await sql`
       select count(*)::int as n
       from registrations
-      where lower(email) = ${d.email}
+      where lower(email) = ${contactEmail}
         and status = 'pending'
         and created_at > now() - interval '1 hour'
     `;
@@ -220,15 +239,15 @@ export async function POST(request: Request) {
       insert into registrations (
         category_id, full_name, date_of_birth, gender, phone, email, city, state,
         tshirt_size, emergency_name, emergency_phone, blood_group,
-        guardian_name, guardian_phone, consent_terms, consent_messages,
+        guardian_name, guardian_phone, guardian_email, consent_terms, consent_messages,
         consent_updates, amount_paise, status
       )
       select
         ${d.categoryId}, ${d.fullName}, ${d.dateOfBirth}::date, ${d.gender},
-        ${d.phone}, ${d.email}, ${d.city}, ${d.state}, ${d.tshirtSize},
+        ${contactPhone}, ${contactEmail}, ${d.city}, ${d.state}, ${d.tshirtSize},
         ${emergencyName}::text, ${emergencyPhone}::text,
         ${d.bloodGroup || null}::text,
-        ${guardianName}::text, ${guardianPhone}::text,
+        ${guardianName}::text, ${guardianPhone}::text, ${guardianEmail}::text,
         ${d.consentTerms}::boolean, ${d.consentMessages}::boolean,
         ${d.consentUpdates}::boolean,
         ${category.price_paise}::integer, ${startStatus}::text
@@ -270,7 +289,7 @@ export async function POST(request: Request) {
 
   // Free category: confirmed straight away
   if (!isPaid) {
-    after(() => sendConfirmation(registrationId));
+    after(() => sendNotifications(registrationId));
     return Response.json({
       ok: true,
       registrationCode: registrationCode(registrationId),

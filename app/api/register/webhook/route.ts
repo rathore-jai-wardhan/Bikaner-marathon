@@ -2,7 +2,7 @@ import { after } from "next/server";
 import { sql } from "../../../../lib/db";
 import { verifyWebhookSignature } from "../../../../lib/razorpay";
 import { markPaid } from "../../../../lib/payment";
-import { sendConfirmation } from "../../../../lib/email";
+import { sendNotifications } from "../../../../lib/notify";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
   if (result.result === "paid" || result.result === "already_paid") {
     const id = result.registrationId;
-    after(() => sendConfirmation(id));
+    after(() => sendNotifications(id));
   }
 
   // Keep a log of events we handled

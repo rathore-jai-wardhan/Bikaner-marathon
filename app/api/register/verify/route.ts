@@ -1,7 +1,7 @@
 import { after } from "next/server";
 import { verifyCheckoutSignature } from "../../../../lib/razorpay";
 import { markPaid, registrationCode } from "../../../../lib/payment";
-import { sendConfirmation } from "../../../../lib/email";
+import { sendNotifications } from "../../../../lib/notify";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
   if (result.result === "paid" || result.result === "already_paid") {
     const id = result.registrationId;
-    after(() => sendConfirmation(id));
+    after(() => sendNotifications(id));
     return Response.json({ ok: true, registrationCode: registrationCode(id) });
   }
 
