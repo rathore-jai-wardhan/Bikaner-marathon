@@ -1,6 +1,6 @@
 const categories = [
-  { distance: '2K', name: 'Kids Run', price: 'Free' },
-  { distance: '5K', name: 'Fun Run' , price: '₹ 299' },
+  { distance: '2K', name: 'Fun Run', price: '₹ 149' },
+  { distance: '5K', name: 'Run', price: '₹ 299' },
   { distance: '10K', name: 'Challenge Run', price: '₹ 399' },
   { distance: '21K', name: 'Half Marathon', price: '₹ 499' },
 ]

@@ -10,9 +10,12 @@ export default function Hero() {
          className="w-full max-w-sm rounded-lg shadow-lg"
         />
       </div>
-      <h2 className="text-2xl heading-font mb-2" style={{ color: 'var(--maroon)' }}>
-        Registration Opening Soon
+      <h2 className="text-3xl heading-font mb-2" style={{ color: 'var(--maroon)' }}>
+        Registration is Live!
       </h2>
+      <h3 className="text-xl heading-font mb-3" style={{ color: 'var(--maroon)' }}>
+        Time until race day:
+      </h3>
       <Countdown />
     </section>
   )
