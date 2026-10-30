@@ -1,4 +1,6 @@
 
+import Link from 'next/link'
+
 export default function Header() {
   return (
     <header className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: 'var(--maroon)' }}>
@@ -7,13 +9,15 @@ export default function Header() {
         <span className="text-white font-bold text-sm">x</span>
         <img src="/bikaner-marathon.jpg" alt="Bikaner Marathon" className="h-15 w-15 rounded-full object-cover" />
       </div>
-      <a
-          href="#registration"
+      <Link
+          href="/register"
+          target="_blank"
+          rel="noopener noreferrer"
           className="px-6 py-2 rounded-full font-semibold text-sm"
           style={{ backgroundColor: 'var(--gold)', color: 'var(--charcoal)' }}
         >
          Register Now
-        </a>
+        </Link>
     </header>
   )
 }
