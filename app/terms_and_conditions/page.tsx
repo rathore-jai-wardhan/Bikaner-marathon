@@ -24,7 +24,7 @@ export default function TermsAndConditions() {
     {
       title: "3. Eligibility & Registration",
       content: [
-        "Participants must meet the age, eligibility, and other requirements published for their chosen race category.",
+        "There is no minimum or maximum age limit for any race category. Participants who will be under 18 years of age on race day (27 December 2026) must be registered with the name, mobile number and email address of a parent or legal guardian, who will receive all registration communications and is responsible for the participant's participation.",
         "Registration is considered confirmed only after successful payment, where applicable, and receipt of registration confirmation.",
         "Participants must provide accurate and complete information during registration. The organisers may cancel or invalidate a registration if materially false, misleading, or fraudulent information is identified, subject to applicable requirements.",
       ],
@@ -48,16 +48,18 @@ export default function TermsAndConditions() {
     {
       title: "6. Race Categories & Eligibility",
       content: [
-        "Participants may enter only a race category for which they satisfy the published eligibility criteria.",
+        "Participants may enter any race category, subject to these Rules & Regulations.",
         "Available categories, minimum age requirements, registration limits, and any category-change procedure will be announced through official event channels.",
         "Any request to change a race category is subject to organiser approval and operational feasibility.",
-        "Confirmed Bikaner Marathon race categories: 2 Km Kids Run, 5 Km Fun Run, 10 Km Challenge Run, 21 Km Half Marathon.",
+        "Confirmed Bikaner Marathon race categories: 2 Km Fun Run, 5 Km Run, 10 Km Challenge Run, 21 Km Half Marathon.",
+       "2 Km Fun Run: participants receive an event T-shirt only. No race bib, finisher medal, or refreshments are provided for this category.",
+        "5 Km Run, 10 Km Challenge Run and 21 Km Half Marathon: participants receive a race bib, event T-shirt, finisher medal (subject to finishing within the applicable cut-off) and on-course refreshments. Breakfast is not provided for any category.",
       ],
     },
     {
       title: "7. Bib Expo & Race Kit Collection",
       content: [
-        "Race kits must be collected at the designated location and during the dates and times announced by the organisers.",
+        "Race Kit: The items issued to a participant for their race category. For the 2 Km Fun Run this is an event T-shirt only. For the 5 Km, 10 Km and 21 Km categories it includes the race bib, event T-shirt and other items specified by the organisers.",
         "Participants may be required to present their registration confirmation and valid identification for verification.",
         "Race kit collection arrangements, authorised collection by another person, and any applicable deadlines will be communicated through official event channels.",
       ],
@@ -65,7 +67,7 @@ export default function TermsAndConditions() {
     {
       title: "8. Race Bib, Timing Chip & Identity Verification",
       content: [
-        "Participants must display their race bib as instructed by the organisers. Where required, the bib must remain clearly visible on the front of the participant's clothing.",
+        "Participants in the 5 Km, 10 Km and 21 Km categories must display their race bib as instructed by the organisers. Where required, the bib must remain clearly visible on the front of the participant's clothing. Race bibs are not issued for the 2 Km Fun Run.",
         "Bib swapping, impersonation, unauthorised duplication, alteration of a bib, or tampering with timing equipment is prohibited.",
         "Electronic timing will be used where applicable. Participants are responsible for following the instructions provided for timing chips and other event equipment.",
       ],
@@ -97,7 +99,7 @@ export default function TermsAndConditions() {
       content: [
         "Official results will be determined using the event's designated timing system and result-verification procedures, where applicable.",
         "Results may be published through official event channels. Participants should report suspected timing or result errors within the period and through the process announced by the organisers.",
-        "Finisher medals, certificates, rankings, and other benefits depend on the category entered and the applicable eligibility and completion requirements.",
+        "Finisher medals are awarded only in the 5 Km, 10 Km and 21 Km categories, to participants who finish within the applicable cut-off. The 2 Km Fun Run is non-timed and does not include a medal, bib, rankings, or refreshments. Certificates and other benefits depend on the category entered and the applicable completion requirements.",
       ],
     },
    

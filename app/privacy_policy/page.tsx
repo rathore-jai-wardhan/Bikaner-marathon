@@ -180,7 +180,7 @@ export default function PrivacyPolicy() {
         {
           paragraphs: [
             {
-              text: "Race participation is subject to the eligibility requirements for each category. Where participation by a minor is permitted, the organiser will follow applicable requirements concerning parental or guardian involvement and the collection and use of the minor's personal information. Questions or concerns about information relating to a minor can be directed to the contact listed below.",
+              text: "Participants of any age may register. For participants who will be under 18 on race day, registration must be completed with a parent or legal guardian's name, mobile number and email address. The participant's own contact details are not collected; all confirmations and event messages are sent to the parent or guardian. Questions or concerns about information relating to a minor can be directed to the contact listed below.",
             },
           ],
         },
