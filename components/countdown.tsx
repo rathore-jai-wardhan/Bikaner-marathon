@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const EVENT_DATE = new Date('2026-12-27T05:00:00')
+// Race start in India time (+05:30), so it's the same moment on every server and browser
+const EVENT_DATE = new Date('2026-12-27T05:00:00+05:30')
 
 function getTimeLeft() {
   const diff = EVENT_DATE.getTime() - Date.now()
@@ -15,18 +16,22 @@ function getTimeLeft() {
 }
 
 export default function Countdown() {
-  const [time, setTime] = useState(getTimeLeft())
+  // Starts empty: the time is only worked out in the browser, so the server's
+  // HTML and the browser's first render always match (no hydration error)
+  const [time, setTime] = useState<ReturnType<typeof getTimeLeft> | null>(null)
 
   useEffect(() => {
-    const timer = setInterval(() => setTime(getTimeLeft()), 1000)
+    const tick = () => setTime(getTimeLeft())
+    tick()
+    const timer = setInterval(tick, 1000)
     return () => clearInterval(timer)
   }, [])
 
   const units = [
-    { label: 'Days', value: time.days },
-    { label: 'Hours', value: time.hours },
-    { label: 'Minutes', value: time.minutes },
-    { label: 'Seconds', value: time.seconds },
+    { label: 'Days', value: time?.days },
+    { label: 'Hours', value: time?.hours },
+    { label: 'Minutes', value: time?.minutes },
+    { label: 'Seconds', value: time?.seconds },
   ]
 
   return (
@@ -34,7 +39,7 @@ export default function Countdown() {
       {units.map((u) => (
         <div key={u.label} className="text-center">
           <div className="text-4xl font-bold" style={{ color: 'var(--gold)' }}>
-            {String(u.value).padStart(2, '0')}
+            {u.value === undefined ? '--' : String(u.value).padStart(2, '0')}
           </div>
           <div className="text-xs uppercase tracking-wide mt-1" style={{ color: 'var(--charcoal)' }}>
             {u.label}
