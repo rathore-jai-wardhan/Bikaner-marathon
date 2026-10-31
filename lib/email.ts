@@ -9,6 +9,18 @@ function esc(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
+function sendViaResend(apiKey: string, body: Record<string, unknown>): Promise<Response> {
+  return fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(10_000),
+  });
+}
+
 // Sends the confirmation email once per registration.
 export async function sendConfirmation(registrationId: string): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
@@ -58,22 +70,48 @@ export async function sendConfirmation(registrationId: string): Promise<void> {
     `Registration ID: ${code}\n${paid}\n\n` +
     `We will share bib collection and race-day details closer to the date.`;
 
+  const subject = `Registration confirmed: ${reg.category_name}, Bikaner Marathon 2026`;
+  const templateId = process.env.RESEND_TEMPLATE_ID;
+
+  // Values for the Resend template. The keys must match the variable names in
+  // the Resend template exactly: {{RUNNER_NAME}}, {{RACE_CATEGORY}},
+  // {{REGISTRATION_ID}}, {{PAYMENT_STATUS}}
+  const templateVariables: Record<string, string> = {
+    RUNNER_NAME: String(reg.full_name),
+    RACE_CATEGORY: String(reg.category_name),
+    REGISTRATION_ID: code,
+    PAYMENT_STATUS: reg.amount_paise > 0 ? `Paid (Rs ${reg.amount_paise / 100})` : "No payment required",
+  };
+
   try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    let res: Response | null = null;
+
+    // 1st choice: your designed template stored in Resend
+    if (templateId) {
+      res = await sendViaResend(apiKey, {
         from,
         to: [reg.email],
-        subject: `Registration confirmed: ${reg.category_name}, Bikaner Marathon 2026`,
-        html,
-        text,
-      }),
-    });
-    if (!res.ok) throw new Error(`Email provider said ${res.status}`);
+        subject,
+        template: { id: templateId, variables: templateVariables },
+      });
+      if (!res.ok) {
+        // Most likely a variable-name mismatch or an unpublished template.
+        // Log Resend's reason, then fall back so the runner still gets an email.
+        console.error(
+          "Resend template email failed, sending built-in email instead:",
+          res.status,
+          await res.text().catch(() => "")
+        );
+        res = null;
+      }
+    }
+
+    // Fallback: the simple built-in email below
+    if (!res) {
+      res = await sendViaResend(apiKey, { from, to: [reg.email], subject, html, text });
+    }
+
+    if (!res.ok) throw new Error(`Email provider said ${res.status}: ${await res.text().catch(() => "")}`);
   } catch (err) {
     console.error("Confirmation email failed", err);
     // Release the claim so it can be retried
