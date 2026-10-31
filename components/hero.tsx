@@ -2,7 +2,7 @@ import Countdown from './countdown'
 
 export default function Hero() {
   return (
-    <section id="registration" className="text-center py-16 px-6" style={{ backgroundColor: 'var(--sand)' }}>
+    <section id="registration" className="text-center pt-28 pb-16 sm:pt-16 px-6" style={{ backgroundColor: 'var(--sand)' }}>
       <div className="flex justify-center mb-8">
        <img
          src="/marathon poster.png"
