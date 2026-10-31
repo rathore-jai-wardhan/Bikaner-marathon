@@ -4,17 +4,14 @@ import { useState } from "react";
 import { STATES } from "../lib/state";
 import { citiesForState, OTHER_CITY_VALUE } from "../lib/cities";
 import { cleanPhone, isValidPhone } from "../lib/phone";
+import { BLOOD_GROUPS, cityProblem, isBloodGroup, isValidEmail, nameProblem } from "../lib/validate";
 
 // Fields in the order they appear on the form, so we scroll to the first wrong one
 const FIELD_ORDER = [
   "fullName", "dateOfBirth", "state", "city", "tshirtSize",
   "phone", "email", "guardianName", "guardianPhone", "guardianEmail",
-  "emergencyName", "emergencyPhone", "consentTerms", "consentMessages",
+  "emergencyName", "emergencyPhone", "bloodGroup", "consentTerms",
 ];
-
-function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim());
-}
 
 type Category = {
   id: string;
@@ -90,8 +87,6 @@ export default function RegisterForm({
     guardianPhone: "",
     guardianEmail: "",
     consentTerms: false,
-    consentMessages: false,
-    consentUpdates: false,
   });
   const [status, setStatus] = useState<
     "idle" | "sending" | "awaiting_payment" | "verifying" | "payment_issue" | "done" | "error"
@@ -169,9 +164,11 @@ export default function RegisterForm({
   // Checks every field at once (same rules as the server) so all mistakes show together
   function validate(): Record<string, string> {
     const errs: Record<string, string> = {};
-    if (form.fullName.trim().length < 2) errs.fullName = "Please enter the full name.";
+    const fullNameErr = nameProblem(form.fullName, "runner's name");
+    if (fullNameErr) errs.fullName = fullNameErr;
     if (!hasDob) errs.dateOfBirth = "Please enter a valid date of birth.";
-    if (form.city.trim().length < 2) errs.city = "Please enter your city.";
+    const cityErr = cityProblem(form.city);
+    if (cityErr) errs.city = cityErr;
     if (!sizes.includes(form.tshirtSize)) errs.tshirtSize = "Please choose a T-shirt size.";
 
     if (hasDob && !isMinor) {
@@ -180,23 +177,26 @@ export default function RegisterForm({
       if (!isValidEmail(form.email)) errs.email = "Please enter a valid email address.";
     }
     if (isMinor) {
-      if (form.guardianName.trim().length < 2)
-        errs.guardianName = "Please enter the parent or guardian's name.";
+      const gNameErr = nameProblem(form.guardianName, "parent or guardian's name");
+      if (gNameErr) errs.guardianName = gNameErr;
       if (!isValidPhone(cleanPhone(form.guardianPhone)))
         errs.guardianPhone = "Please enter a valid 10-digit mobile number for the parent or guardian.";
       if (!isValidEmail(form.guardianEmail))
         errs.guardianEmail = "Please enter a valid email address for the parent or guardian.";
     }
 
-    if (form.emergencyName.trim().length < 2)
-      errs.emergencyName = "Please enter an emergency contact name.";
-    if (!isValidPhone(cleanPhone(form.emergencyPhone)))
+    const eNameErr = nameProblem(form.emergencyName, "emergency contact's name");
+    if (eNameErr) errs.emergencyName = eNameErr;
+    const ePhone = cleanPhone(form.emergencyPhone);
+    if (!isValidPhone(ePhone))
       errs.emergencyPhone = "Please enter a valid 10-digit mobile number for the emergency contact.";
+    else if (hasDob && !isMinor && ePhone === cleanPhone(form.phone))
+      errs.emergencyPhone = "The emergency contact number must be different from your own number.";
+
+    if (!isBloodGroup(form.bloodGroup)) errs.bloodGroup = "Please select the blood group.";
 
     if (!form.consentTerms)
       errs.consentTerms = "Please accept the Terms, Privacy and Refund policies to continue.";
-    if (!form.consentMessages)
-      errs.consentMessages = "Please agree to receive your registration messages.";
     return errs;
   }
 
@@ -396,7 +396,7 @@ export default function RegisterForm({
 
       <div>
         <label className={labelClass}>Runner&apos;s full name</label>
-        <input id="fullName" className={inputFor("fullName")} value={form.fullName}
+        <input id="fullName" maxLength={100} autoComplete="off" className={inputFor("fullName")} value={form.fullName}
           onChange={(e) => set("fullName", e.target.value)} />
         {fieldError("fullName")}
       </div>
@@ -481,7 +481,7 @@ export default function RegisterForm({
         <>
           <div>
             <label className={labelClass}>Mobile number (WhatsApp)</label>
-            <input type="tel" id="phone" className={inputFor("phone")} value={form.phone}
+            <input type="tel" inputMode="tel" maxLength={16} id="phone" className={inputFor("phone")} value={form.phone}
               disabled={!hasDob}
               placeholder={hasDob ? "" : "Enter date of birth first"}
               onChange={(e) => set("phone", e.target.value)} />
@@ -491,7 +491,7 @@ export default function RegisterForm({
 
           <div>
             <label className={labelClass}>Email</label>
-            <input type="email" id="email" className={inputFor("email")} value={form.email}
+            <input type="email" maxLength={200} id="email" className={inputFor("email")} value={form.email}
               disabled={!hasDob}
               placeholder={hasDob ? "" : "Enter date of birth first"}
               onChange={(e) => set("email", e.target.value)} />
@@ -507,19 +507,19 @@ export default function RegisterForm({
           </legend>
           <div>
             <label className={labelClass}>Parent or guardian&apos;s full name</label>
-            <input id="guardianName" className={inputFor("guardianName")} value={form.guardianName}
+            <input id="guardianName" maxLength={100} autoComplete="off" className={inputFor("guardianName")} value={form.guardianName}
               onChange={(e) => set("guardianName", e.target.value)} />
             {fieldError("guardianName")}
           </div>
           <div>
             <label className={labelClass}>Parent or guardian&apos;s mobile number (WhatsApp)</label>
-            <input type="tel" id="guardianPhone" className={inputFor("guardianPhone")} value={form.guardianPhone}
+            <input type="tel" inputMode="tel" maxLength={16} id="guardianPhone" className={inputFor("guardianPhone")} value={form.guardianPhone}
               onChange={(e) => set("guardianPhone", e.target.value)} />
             {fieldError("guardianPhone")}
           </div>
           <div>
             <label className={labelClass}>Parent or guardian&apos;s email</label>
-            <input type="email" id="guardianEmail" className={inputFor("guardianEmail")} value={form.guardianEmail}
+            <input type="email" maxLength={200} id="guardianEmail" className={inputFor("guardianEmail")} value={form.guardianEmail}
               onChange={(e) => set("guardianEmail", e.target.value)} />
             {fieldError("guardianEmail")}
           </div>
@@ -531,27 +531,28 @@ export default function RegisterForm({
 
       <div>
         <label className={labelClass}>Emergency contact name</label>
-        <input id="emergencyName" className={inputFor("emergencyName")} value={form.emergencyName}
+        <input id="emergencyName" maxLength={100} autoComplete="off" className={inputFor("emergencyName")} value={form.emergencyName}
           onChange={(e) => set("emergencyName", e.target.value)} />
         {fieldError("emergencyName")}
       </div>
 
       <div>
         <label className={labelClass}>Emergency contact mobile</label>
-        <input type="tel" id="emergencyPhone" className={inputFor("emergencyPhone")} value={form.emergencyPhone}
+        <input type="tel" inputMode="tel" maxLength={16} id="emergencyPhone" className={inputFor("emergencyPhone")} value={form.emergencyPhone}
           onChange={(e) => set("emergencyPhone", e.target.value)} />
         {fieldError("emergencyPhone")}
       </div>
 
       <div>
-        <label className={labelClass}>Blood group (optional)</label>
-        <select className={inputClass} value={form.bloodGroup}
+        <label className={labelClass}>Blood group</label>
+        <select id="bloodGroup" className={inputFor("bloodGroup")} value={form.bloodGroup}
           onChange={(e) => set("bloodGroup", e.target.value)}>
-          <option value="">Prefer not to say</option>
-          {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((b) => (
+          <option value="" disabled>Select blood group</option>
+          {BLOOD_GROUPS.map((b) => (
             <option key={b} value={b}>{b}</option>
           ))}
         </select>
+        {fieldError("bloodGroup")}
       </div>
 
       <div>
@@ -568,24 +569,6 @@ export default function RegisterForm({
       </label>
       {fieldError("consentTerms")}
       </div>
-
-      <div>
-      <label className="flex items-start gap-2 text-sm">
-        <input type="checkbox" id="consentMessages" checked={form.consentMessages}
-          onChange={(e) => set("consentMessages", e.target.checked)} />
-        <span>
-          I agree to receive the registration confirmation and event messages on the
-          WhatsApp number and email above.
-        </span>
-      </label>
-      {fieldError("consentMessages")}
-      </div>
-
-      <label className="flex items-start gap-2 text-sm">
-        <input type="checkbox" checked={form.consentUpdates}
-          onChange={(e) => set("consentUpdates", e.target.checked)} />
-        <span>Send me updates about future Bikaner Run Club and Marathon events (optional).</span>
-      </label>
 
       {status === "error" && (
         <p className="rounded-lg bg-red-100 p-3 text-sm text-red-900">{message}</p>

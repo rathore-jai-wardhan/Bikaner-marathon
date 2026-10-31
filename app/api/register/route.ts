@@ -6,6 +6,7 @@ import { createOrder } from "../../../lib/razorpay";
 import { registrationCode } from "../../../lib/payment";
 import { sendNotifications } from "../../../lib/notify";
 import { cleanPhone, isValidPhone } from "../../../lib/phone";
+import { BLOOD_GROUPS, cityProblem, nameProblem, tidy } from "../../../lib/validate";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -33,35 +34,38 @@ function isValidEmail(value: string): boolean {
 
 const schema = z.object({
   categoryId: z.string().trim().min(1).max(10),
-  fullName: z.string().trim().min(2, "Please enter the full name.").max(100),
+  fullName: z
+    .string()
+    .transform(tidy)
+    .superRefine((v, ctx) => {
+      const p = nameProblem(v, "runner's name");
+      if (p) ctx.addIssue({ code: "custom", message: p });
+    }),
   dateOfBirth: z.string().refine(isRealDate, "Please enter a valid date of birth."),
   gender: z.enum(["male", "female", "other"]),
   // Runner's own contact. Only used when the runner is 18 or older on race day.
   phone: z.string().trim().max(30).default(""),
   email: z.string().trim().toLowerCase().max(200).default(""),
-  city: z.string().trim().min(2, "Please enter your city.").max(100),
+  city: z
+    .string()
+    .transform(tidy)
+    .superRefine((v, ctx) => {
+      const p = cityProblem(v);
+      if (p) ctx.addIssue({ code: "custom", message: p });
+    }),
   state: z
     .string()
     .refine((v) => STATES.includes(v), "Please choose your state."),
   tshirtSize: z.string().trim().min(1).max(10),
-  emergencyName: z.string().trim().max(100).default(""),
+  emergencyName: z.string().max(200).default("").transform(tidy),
   emergencyPhone: z.string().trim().max(30).default(""),
-  bloodGroup: z
-    .enum(["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])
-    .default(""),
-  guardianName: z.string().trim().max(100).default(""),
+  bloodGroup: z.enum(BLOOD_GROUPS, { message: "Please select the blood group." }),
+  guardianName: z.string().max(200).default("").transform(tidy),
   guardianPhone: z.string().trim().max(30).default(""),
   guardianEmail: z.string().trim().toLowerCase().max(200).default(""),
   consentTerms: z
     .boolean()
     .refine((v) => v === true, "Please accept the Terms, Privacy and Refund policies to continue."),
-  consentMessages: z
-    .boolean()
-    .refine(
-      (v) => v === true,
-      "Please agree to receive your registration messages on WhatsApp and email."
-    ),
-  consentUpdates: z.boolean().default(false),
 });
 
 export async function POST(request: Request) {
@@ -143,11 +147,9 @@ export async function POST(request: Request) {
 
   if (isMinor) {
     const gPhone = cleanPhone(d.guardianPhone);
-    if (d.guardianName.length < 2) {
-      return Response.json(
-        { error: "Participants under 18 need a parent or guardian's name.", field: "guardianName" },
-        { status: 400 }
-      );
+    const gNameErr = nameProblem(d.guardianName, "parent or guardian's name");
+    if (gNameErr) {
+      return Response.json({ error: gNameErr, field: "guardianName" }, { status: 400 });
     }
     if (!isValidPhone(gPhone)) {
       return Response.json(
@@ -190,17 +192,24 @@ export async function POST(request: Request) {
   // Emergency contact: required for every runner, any age
   {
     const ePhone = cleanPhone(d.emergencyPhone);
-    if (d.emergencyName.length < 2) {
-      return Response.json(
-        { error: "Please enter an emergency contact name.", field: "emergencyName" },
-        { status: 400 }
-      );
+    const eNameErr = nameProblem(d.emergencyName, "emergency contact's name");
+    if (eNameErr) {
+      return Response.json({ error: eNameErr, field: "emergencyName" }, { status: 400 });
     }
     if (!isValidPhone(ePhone)) {
       return Response.json(
         {
           error:
             "Please enter a valid 10-digit mobile number for the emergency contact (it must start with 6, 7, 8 or 9).",
+          field: "emergencyPhone",
+        },
+        { status: 400 }
+      );
+    }
+    if (!isMinor && ePhone === contactPhone) {
+      return Response.json(
+        {
+          error: "The emergency contact number must be different from your own number.",
           field: "emergencyPhone",
         },
         { status: 400 }
@@ -246,10 +255,12 @@ export async function POST(request: Request) {
         ${d.categoryId}, ${d.fullName}, ${d.dateOfBirth}::date, ${d.gender},
         ${contactPhone}, ${contactEmail}, ${d.city}, ${d.state}, ${d.tshirtSize},
         ${emergencyName}::text, ${emergencyPhone}::text,
-        ${d.bloodGroup || null}::text,
+        ${d.bloodGroup}::text,
         ${guardianName}::text, ${guardianPhone}::text, ${guardianEmail}::text,
-        ${d.consentTerms}::boolean, ${d.consentMessages}::boolean,
-        ${d.consentUpdates}::boolean,
+        ${d.consentTerms}::boolean,
+        -- Confirmations are part of registering, so they are always sent.
+        -- The marketing opt-in was removed from the form, so it is always false.
+        true, false,
         ${category.price_paise}::integer, ${startStatus}::text
       where (
         select count(*) from registrations
