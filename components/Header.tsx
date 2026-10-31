@@ -25,9 +25,11 @@ export default function Header() {
         Register Now
       </Link>
 
-      {/* Venue partner tab: hangs from the centre of the header */}
+            {/* Venue partner tab: hangs from the centre of the header.
+          inset-x-0 + mx-auto + w-fit centres it using the full width, so it never
+          gets squeezed; on phones it stacks into two lines. */}
       <div
-        className="absolute left-1/2 top-full flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-b-2xl px-4 pb-2 pt-1.5 shadow-md sm:px-5"
+        className="absolute inset-x-0 top-full mx-auto flex w-fit max-w-[calc(100%-1.5rem)] flex-col items-center gap-0.5 rounded-b-2xl px-4 pb-2 pt-1.5 text-center shadow-md sm:flex-row sm:gap-2 sm:px-5"
         style={{ backgroundColor: 'var(--maroon)' }}
       >
         <span className="text-xs text-white/85 sm:text-sm">Venue Partner:</span>
@@ -44,9 +46,11 @@ export default function Header() {
           <img
             src="/partners/laxmi-niwas-palace.jpeg"
             alt=""
+            className="shrink-0"
             style={{
               height: VENUE_LOGO_HEIGHT,
               width: 'auto',
+              maxWidth: 'none',
               borderRadius: 4,
               border: '1px solid var(--gold)',
             }}
