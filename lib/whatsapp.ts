@@ -23,12 +23,55 @@ export function cleanParam(value: unknown): string {
   return text || "-";
 }
 
+export type HeaderMedia = {
+  type: "image" | "video" | "document";
+  link: string; // public https address of the file
+  filename?: string; // only used for documents (PDF)
+};
+
+// Reads the template's media header from the environment variables, if it has one.
+//   WHATSAPP_HEADER_MEDIA_URL  = https://www.bikanermarathon.com/whatsapp-header.jpg
+//   WHATSAPP_HEADER_MEDIA_TYPE = image | video | document   (default: image)
+// Leave WHATSAPP_HEADER_MEDIA_URL unset if the template has no media header.
+export function headerMediaFromEnv(): HeaderMedia | undefined {
+  const link = process.env.WHATSAPP_HEADER_MEDIA_URL?.trim();
+  if (!link) return undefined;
+  const raw = (process.env.WHATSAPP_HEADER_MEDIA_TYPE || "image").trim().toLowerCase();
+  const type = raw === "video" || raw === "document" ? raw : "image";
+  return {
+    type,
+    link,
+    filename: type === "document" ? "Bikaner-Marathon-2026.pdf" : undefined,
+  };
+}
+
 export function buildTemplatePayload(args: {
   to: string;
   templateName: string;
   languageCode: string;
   params: unknown[];
+  header?: HeaderMedia;
 }) {
+  const components: Record<string, unknown>[] = [];
+
+  // The media header must be sent with every message: the sample uploaded in
+  // WhatsApp Manager is only for Meta's review and is not sent automatically.
+  if (args.header) {
+    const media: Record<string, string> = { link: args.header.link };
+    if (args.header.type === "document" && args.header.filename) {
+      media.filename = args.header.filename;
+    }
+    components.push({
+      type: "header",
+      parameters: [{ type: args.header.type, [args.header.type]: media }],
+    });
+  }
+
+  components.push({
+    type: "body",
+    parameters: args.params.map((p) => ({ type: "text", text: cleanParam(p) })),
+  });
+
   return {
     messaging_product: "whatsapp",
     to: args.to,
@@ -36,12 +79,7 @@ export function buildTemplatePayload(args: {
     template: {
       name: args.templateName,
       language: { code: args.languageCode },
-      components: [
-        {
-          type: "body",
-          parameters: args.params.map((p) => ({ type: "text", text: cleanParam(p) })),
-        },
-      ],
+      components,
     },
   };
 }
@@ -166,6 +204,7 @@ export async function sendWhatsAppConfirmation(
         reg.category_name,         // {{3}} Race category
         paymentStatus,              // {{4}} Payment status
       ],
+      header: headerMediaFromEnv(),
     }),
     {
       phoneNumberId,
@@ -191,5 +230,3 @@ export async function sendWhatsAppConfirmation(
     });
   }
 }
-
-
