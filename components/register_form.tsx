@@ -4,7 +4,7 @@ import { useState } from "react";
 import { STATES } from "../lib/state";
 import { citiesForState, OTHER_CITY_VALUE } from "../lib/cities";
 import { cleanPhone, isValidPhone } from "../lib/phone";
-import { BLOOD_GROUPS, cityProblem, isBloodGroup, isValidEmail, nameProblem } from "../lib/validate";
+import { BLOOD_GROUPS, cityProblem, emailProblem, isBloodGroup, MIN_AGE, nameProblem } from "../lib/validate";
 
 // Fields in the order they appear on the form, so we scroll to the first wrong one
 const FIELD_ORDER = [
@@ -167,6 +167,8 @@ export default function RegisterForm({
     const fullNameErr = nameProblem(form.fullName, "runner's name");
     if (fullNameErr) errs.fullName = fullNameErr;
     if (!hasDob) errs.dateOfBirth = "Please enter a valid date of birth.";
+    else if (age !== null && age < MIN_AGE)
+      errs.dateOfBirth = "Please check the date of birth: it looks like today's date or the race date.";
     const cityErr = cityProblem(form.city);
     if (cityErr) errs.city = cityErr;
     if (!sizes.includes(form.tshirtSize)) errs.tshirtSize = "Please choose a T-shirt size.";
@@ -174,15 +176,16 @@ export default function RegisterForm({
     if (hasDob && !isMinor) {
       if (!isValidPhone(cleanPhone(form.phone)))
         errs.phone = "Please enter a valid 10-digit mobile number.";
-      if (!isValidEmail(form.email)) errs.email = "Please enter a valid email address.";
+      const emailErr = emailProblem(form.email, "");
+      if (emailErr) errs.email = emailErr;
     }
     if (isMinor) {
       const gNameErr = nameProblem(form.guardianName, "parent or guardian's name");
       if (gNameErr) errs.guardianName = gNameErr;
       if (!isValidPhone(cleanPhone(form.guardianPhone)))
         errs.guardianPhone = "Please enter a valid 10-digit mobile number for the parent or guardian.";
-      if (!isValidEmail(form.guardianEmail))
-        errs.guardianEmail = "Please enter a valid email address for the parent or guardian.";
+      const gEmailErr = emailProblem(form.guardianEmail, " for the parent or guardian");
+      if (gEmailErr) errs.guardianEmail = gEmailErr;
     }
 
     const eNameErr = nameProblem(form.emergencyName, "emergency contact's name");
@@ -200,8 +203,29 @@ export default function RegisterForm({
     return errs;
   }
 
+  // Asks the server whether this order has been confirmed (for example by
+  // Razorpay's webhook). Tries for about 45 seconds before giving up.
+  async function waitForConfirmation(orderId: string): Promise<string | null> {
+    for (let i = 0; i < 15; i++) {
+      try {
+        const res = await fetch(`/api/register/status?orderId=${encodeURIComponent(orderId)}`, {
+          cache: "no-store",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === "paid" && data.registrationCode) return data.registrationCode;
+        }
+      } catch {
+        // Network hiccup (e.g. the phone just came back from the UPI app): try again
+      }
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+    return null;
+  }
+
   async function confirmPayment(r: RazorpaySuccess) {
     setStatus("verifying");
+    let problem = "";
     try {
       const res = await fetch("/api/register/verify", {
         method: "POST",
@@ -212,20 +236,37 @@ export default function RegisterForm({
           signature: r.razorpay_signature,
         }),
       });
-      const data = await res.json();
-      if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.registrationCode) {
         setCode(data.registrationCode);
         setStatus("done");
-      } else {
-        setMessage(data.error ?? "We could not confirm your payment.");
-        setStatus("payment_issue");
+        return;
       }
+      // Same person already registered: a real problem, show it as it is
+      if (res.status === 409) {
+        setMessage(data.error ?? "This person is already registered for this category.");
+        setStatus("payment_issue");
+        return;
+      }
+      problem = data.error ?? "";
     } catch {
-      setMessage(
-        "We could not confirm your payment yet. Please do not pay again. If money was deducted, your registration will be confirmed automatically, or contact the organisers."
-      );
-      setStatus("payment_issue");
+      // The request itself failed (very common on phones right after the UPI app)
     }
+
+    // The payment may still have gone through: Razorpay also tells our server
+    // directly. Check with the server for a little while before showing a problem.
+    const confirmedCode = await waitForConfirmation(r.razorpay_order_id);
+    if (confirmedCode) {
+      setCode(confirmedCode);
+      setStatus("done");
+      return;
+    }
+
+    setMessage(
+      problem ||
+        "We could not confirm your payment yet. Please do not pay again. If money was deducted, your registration will be confirmed automatically and you will receive a confirmation email, or contact the organisers."
+    );
+    setStatus("payment_issue");
   }
 
   async function openCheckout(o: Order) {
@@ -325,7 +366,7 @@ export default function RegisterForm({
   if (status === "verifying") {
     return (
       <p className="rounded-xl bg-white p-5 text-black">
-        Confirming your payment. Please don&apos;t close this page.
+        Confirming your payment. This can take up to a minute, please don&apos;t close this page.
       </p>
     );
   }

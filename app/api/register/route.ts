@@ -6,7 +6,7 @@ import { createOrder } from "../../../lib/razorpay";
 import { registrationCode } from "../../../lib/payment";
 import { sendNotifications } from "../../../lib/notify";
 import { cleanPhone, isValidPhone } from "../../../lib/phone";
-import { BLOOD_GROUPS, cityProblem, nameProblem, tidy } from "../../../lib/validate";
+import { BLOOD_GROUPS, cityProblem, emailProblem, MIN_AGE, nameProblem, tidy } from "../../../lib/validate";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -26,10 +26,6 @@ function ageOn(dob: string, onDate: string): number {
   let age = ey - by;
   if (em < bm || (em === bm && ed < bd)) age--;
   return age;
-}
-
-function isValidEmail(value: string): boolean {
-  return z.email().safeParse(value).success;
 }
 
 const schema = z.object({
@@ -104,7 +100,7 @@ export async function POST(request: Request) {
 
   // Check 3: age on race day must fit the category
   const age = ageOn(d.dateOfBirth, EVENT_DATE);
-  if (age < 0 || age > 100) {
+  if (age < MIN_AGE || age > 100) {
     return Response.json({ error: "Please check the date of birth.", field: "dateOfBirth" }, { status: 400 });
   }
   if (age < category.min_age) {
@@ -160,11 +156,9 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    if (!isValidEmail(d.guardianEmail)) {
-      return Response.json(
-        { error: "Please enter a valid email address for the parent or guardian.", field: "guardianEmail" },
-        { status: 400 }
-      );
+    const gEmailErr = emailProblem(d.guardianEmail, " for the parent or guardian");
+    if (gEmailErr) {
+      return Response.json({ error: gEmailErr, field: "guardianEmail" }, { status: 400 });
     }
     guardianName = d.guardianName;
     guardianPhone = gPhone;
@@ -179,11 +173,9 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    if (!isValidEmail(d.email)) {
-      return Response.json(
-        { error: "Please enter a valid email address.", field: "email" },
-        { status: 400 }
-      );
+    const emailErr = emailProblem(d.email, "");
+    if (emailErr) {
+      return Response.json({ error: emailErr, field: "email" }, { status: 400 });
     }
     contactPhone = ownPhone;
     contactEmail = d.email;

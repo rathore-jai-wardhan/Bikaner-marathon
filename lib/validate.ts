@@ -44,3 +44,30 @@ export function isValidEmail(value: string): boolean {
 export function isBloodGroup(value: string): boolean {
   return (BLOOD_GROUPS as readonly string[]).includes(value);
 }
+// Common misspellings of email providers, e.g. "gamil.com". Mail to these bounces,
+// so the runner would never get their confirmation.
+const DOMAIN_TYPOS: Record<string, string> = {
+  "gamil.com": "gmail.com", "gmial.com": "gmail.com", "gmai.com": "gmail.com",
+  "gmal.com": "gmail.com", "gmil.com": "gmail.com", "gnail.com": "gmail.com",
+  "gmaill.com": "gmail.com", "gmailm.com": "gmail.com", "gmail.co": "gmail.com",
+  "gmail.cm": "gmail.com", "gmail.con": "gmail.com", "gmail.om": "gmail.com",
+  "gmail.in": "gmail.com", "gmali.com": "gmail.com", "gamail.com": "gmail.com",
+  "yaho.com": "yahoo.com", "yahooo.com": "yahoo.com", "yahoo.co": "yahoo.com",
+  "yahoo.con": "yahoo.com", "hotmial.com": "hotmail.com", "hotmail.co": "hotmail.com",
+  "outlok.com": "outlook.com", "outlook.co": "outlook.com", "rediffmail.co": "rediffmail.com",
+  "icloud.co": "icloud.com",
+};
+
+// Returns an error message if the email is invalid or has a misspelt provider, else null.
+export function emailProblem(value: string, whose: string): string | null {
+  const v = value.trim().toLowerCase();
+  if (!isValidEmail(v)) return `Please enter a valid email address${whose}.`;
+  const domain = v.split("@")[1];
+  const fix = DOMAIN_TYPOS[domain];
+  if (fix) return `Please check the email address${whose}: did you mean ${v.split("@")[0]}@${fix}?`;
+  return null;
+}
+
+// The youngest age accepted on race day. Catches a date of birth entered as
+// today's date or the race date by mistake.
+export const MIN_AGE = 3;
