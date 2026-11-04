@@ -5,6 +5,78 @@ const categories = [
   { distance: '21K', name: 'Half Marathon', price: '₹ 499' },
 ]
 
+// What each category includes. true = green tick, false = red cross.
+// To change what a category gets, edit this list only.
+const benefitColumns = ['T-shirt', 'BIB', 'Medal', 'Refreshments', 'Prize eligible']
+const benefits = [
+  { category: '2K Fun Run', values: [true, false, false, false, false] },
+  { category: '5K Run', values: [true, true, true, true, true] },
+  { category: '10K Challenge Run', values: [true, true, true, true, true] },
+  { category: '21K Half Marathon', values: [true, true, true, true, true] },
+]
+
+function Tick() {
+  return (
+    <svg viewBox="0 0 24 24" className="mx-auto h-5 w-5 sm:h-6 sm:w-6" role="img" aria-label="Included">
+      <circle cx="12" cy="12" r="11" fill="#16a34a" />
+      <path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function Cross() {
+  return (
+    <svg viewBox="0 0 24 24" className="mx-auto h-5 w-5 sm:h-6 sm:w-6" role="img" aria-label="Not included">
+      <circle cx="12" cy="12" r="11" fill="#dc2626" />
+      <path d="M8.5 8.5l7 7M15.5 8.5l-7 7" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function WhatsIncluded() {
+  return (
+    <div className="mt-12">
+      <h3 className="text-2xl heading-font text-center mb-6" style={{ color: 'var(--maroon)' }}>
+        What&apos;s Included
+      </h3>
+      {/* Scrolls sideways on very narrow phones instead of squashing the columns */}
+      <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid var(--sand)' }}>
+        <table className="w-full min-w-[520px] border-collapse text-center text-sm sm:text-base">
+          <thead>
+            <tr style={{ backgroundColor: 'var(--maroon)', color: 'var(--white)' }}>
+              <th scope="col" className="px-3 py-3 text-left font-semibold">Category</th>
+              {benefitColumns.map((col) => (
+                <th key={col} scope="col" className="px-2 py-3 font-semibold">{col}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {benefits.map((row, i) => (
+              <tr
+                key={row.category}
+                style={{ backgroundColor: i % 2 === 0 ? 'var(--ivory)' : 'var(--white)' }}
+              >
+                <th scope="row" className="px-3 py-3 text-left font-semibold" style={{ color: 'var(--charcoal)' }}>
+                  {row.category}
+                </th>
+                {row.values.map((included, j) => (
+                  <td key={benefitColumns[j]} className="px-2 py-3">
+                    {included ? <Tick /> : <Cross />}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-3 text-center text-xs sm:text-sm" style={{ color: 'var(--charcoal)' }}>
+        Medals are awarded to finishers within the cut-off time. Prizes are for top finishers in each category.
+        Breakfast is not provided for any category.
+      </p>
+    </div>
+  )
+}
+
 export default function RaceCategories() {
   return (
     <section className="py-16 px-6 max-w-5xl mx-auto">
@@ -72,6 +144,7 @@ export default function RaceCategories() {
           </div>
         </div>
       </div>
+      <WhatsIncluded />
     </section>
   )
 }
