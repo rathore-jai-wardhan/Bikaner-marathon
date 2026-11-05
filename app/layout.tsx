@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Manrope } from "next/font/google";
+import { Poppins, Inter } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import SiteHeader from "@/components/site_header";
+import Footer from "@/components/footer";
 
-const playfair = Playfair_Display({
+const poppins = Poppins({
   variable: "--font-heading",
   subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
 });
 
-const manrope = Manrope({
+const inter = Inter({
   variable: "--font-body",
   subsets: ["latin"],
 });
@@ -20,9 +23,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${playfair.variable} ${manrope.variable}`}>
+    <html lang="en" className={`${poppins.variable} ${inter.variable}`}>
       <body>
+        <SiteHeader />
         {children}
+        <Footer />
         <Analytics />
       </body>
     </html>

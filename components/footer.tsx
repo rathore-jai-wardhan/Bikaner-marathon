@@ -1,84 +1,61 @@
+import Link from 'next/link'
 
+function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" strokeWidth="2" />
+      <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
+      <circle cx="17.5" cy="6.5" r="1.3" fill="currentColor" />
+    </svg>
+  )
+}
+
+// Shown on every page. id="contact" is where the menu's "Contact us" jumps to.
 export default function Footer() {
   return (
-    <footer
-      className="py-8 sm:py-10 px-5 sm:px-6 text-center"
-      style={{
-        backgroundColor: "var(--maroon)",
-        color: "white",
-      }}
-    >
-      <div className="flex flex-col md:flex-row items-center md:items-start justify-center gap-6 md:gap-10">
+    <footer id="contact" className="bm-footer">
+      <div className="bm-wrap bm-fgrid">
+        <div>
+          <div className="bm-fbrand">
+            <img src="/logo-round.webp" alt="" width={56} height={56} />
+            <h4>Bikaner Marathon</h4>
+          </div>
+          <p className="bm-forg">Organised by Bikaner Run Club</p>
+        </div>
 
-        {/* Existing Instagram links */}
-        <a
-          href="https://www.instagram.com/bikanerrunclub/?hl=en"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:text-[var(--gold)] transition-colors"
-        >
-          BRC page
-        </a>
-
-        <a
-          href="https://www.instagram.com/bikanermarathon/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:text-[var(--gold)] transition-colors"
-        >
-          Bikaner Marathon page
-        </a>
-
-        {/* Existing sponsor contact */}
-        <span className="max-w-xs leading-relaxed">
-          To become a sponsor, contact:{" "}
+        <div>
+          <h4>Contact us</h4>
+          <a href="mailto:team@bikanerrunclub.in">team@bikanerrunclub.in</a>
+          <a href="tel:+919462475332">+91 94624 75332</a>
           <a
-            href="tel:+919462475332"
-            className="hover:text-[var(--gold)] transition-colors"
-          >
-            +91 9462475332
-          </a>
-        </span>
-
-        {/* New Legal section */}
-        <div className="flex flex-col items-center gap-2">
-          <h3 className="font-semibold text-[var(--gold)]">
-            Legal
-          </h3>
-
-          <a
-            href="/privacy_policy"
+            href="https://www.google.com/maps/search/?api=1&query=Behind+Rajasthan+Patrika+Press+Amar+Singh+Pura+Bikaner+334001"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-[var(--gold)] transition-colors"
           >
-            Privacy Policy
-          </a>
-
-          <a
-            href="/refund_policy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-[var(--gold)] transition-colors"
-          >
-            Refund & Cancellation Policy
-          </a>
-
-          <a
-            href="/terms_and_conditions"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-[var(--gold)] transition-colors"
-          >
-            Terms & Conditions
+            Behind Rajasthan Patrika Press, Amar Singh Pura, Bikaner 334001
           </a>
         </div>
 
-      </div>
+        <div>
+          <h4>Follow us</h4>
+          <a className="bm-social" href="https://www.instagram.com/bikanermarathon/" target="_blank" rel="noopener noreferrer">
+            <InstagramIcon />
+            <span>Bikaner Marathon</span>
+          </a>
+          <a className="bm-social" href="https://www.instagram.com/bikanerrunclub/" target="_blank" rel="noopener noreferrer">
+            <InstagramIcon />
+            <span>Bikaner Run Club</span>
+          </a>
+        </div>
 
-      <div className="mt-7 pt-4 border-t border-white/20 text-xs sm:text-sm opacity-80">
-        © 2026 Bikaner Marathon. All rights reserved.
+        <div>
+          <h4>Policies</h4>
+          <Link href="/terms_and_conditions">Terms and Conditions</Link>
+          <Link href="/privacy_policy">Privacy Policy</Link>
+          <Link href="/refund_policy">Refund and Cancellation Policy</Link>
+        </div>
       </div>
+      <div className="bm-copyr">© 2026 Bikaner Marathon. All rights reserved.</div>
     </footer>
-  );
+  )
 }
