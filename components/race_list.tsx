@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import RouteMap, { type StravaRoute } from './route_map'
 
 export type Race = {
   key: string
@@ -10,6 +11,7 @@ export type Race = {
   fee: number
   tagline: string
   includes: boolean[]
+  route?: StravaRoute
   categoryId: string | null
 }
 
@@ -45,6 +47,9 @@ const ITEMS: { label: string; icon: ReactNode }[] = [
 
 export default function RaceList({ races }: { races: Race[] }) {
   const root = useRef<HTMLDivElement>(null)
+  // Which route maps are open (maps start closed so phones don't load four maps at once)
+  const [openMaps, setOpenMaps] = useState<Record<string, boolean>>({})
+  const toggleMap = (key: string) => setOpenMaps((m) => ({ ...m, [key]: !m[key] }))
 
   // Fade each card in (and fill its distance bar) when it scrolls into view
   useEffect(() => {
@@ -74,59 +79,85 @@ export default function RaceList({ races }: { races: Race[] }) {
         {races.map((r, i) => {
           const href = r.categoryId ? `/register?category=${encodeURIComponent(r.categoryId)}` : '/register'
           const style = { '--d': `${i * 90}ms`, '--w': `${((r.km / FULL_KM) * 100).toFixed(2)}%` } as CSSProperties
+          const mapOpen = !!openMaps[r.key]
           return (
-            <article key={r.key} className="rc-race rc-reveal" style={style} id={`race-${r.key}`}>
-              <div className="rc-id">
-                <div className="rc-dist">{r.distance}</div>
-                <div>
-                  <h3>{r.name}</h3>
-                  <p className="rc-tag">{r.tagline}</p>
+            <div key={r.key} className="rc-item rc-reveal" style={style} id={`race-${r.key}`}>
+              <article className={mapOpen ? 'rc-race rc-open' : 'rc-race'}>
+                <div className="rc-id">
+                  <div className="rc-dist">{r.distance}</div>
+                  <div>
+                    <h3>{r.name}</h3>
+                    <p className="rc-tag">{r.tagline}</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="rc-mid">
-                <div className="rc-track" aria-label={`${r.km} kilometres`}>
-                  <div className="rc-lane">
-                    <div className="rc-fill">
-                      <span className="rc-runner" />
+                <div className="rc-mid">
+                  <div className="rc-track" aria-label={`${r.km} kilometres`}>
+                    <div className="rc-lane">
+                      <div className="rc-fill">
+                        <span className="rc-runner" />
+                      </div>
+                    </div>
+                    <div className="rc-ticks" aria-hidden="true">
+                      {TICKS.map((k) => (
+                        <i key={k} style={{ left: `${(k / FULL_KM) * 100}%` }}>
+                          {k === 21 ? '21 km' : k}
+                        </i>
+                      ))}
                     </div>
                   </div>
-                  <div className="rc-ticks" aria-hidden="true">
-                    {TICKS.map((k) => (
-                      <i key={k} style={{ left: `${(k / FULL_KM) * 100}%` }}>
-                        {k === 21 ? '21 km' : k}
-                      </i>
-                    ))}
-                  </div>
+                  <ul className="rc-chips">
+                    {ITEMS.map((item, j) => {
+                      const yes = r.includes[j]
+                      return (
+                        <li
+                          key={item.label}
+                          className={yes ? 'rc-chip' : 'rc-chip rc-no'}
+                          aria-label={`${item.label}: ${yes ? 'included' : 'not included'}`}
+                        >
+                          <svg viewBox="0 0 24 24" aria-hidden="true">
+                            {item.icon}
+                          </svg>
+                          <span>{item.label}</span>
+                        </li>
+                      )
+                    })}
+                  </ul>
                 </div>
-                <ul className="rc-chips">
-                  {ITEMS.map((item, j) => {
-                    const yes = r.includes[j]
-                    return (
-                      <li
-                        key={item.label}
-                        className={yes ? 'rc-chip' : 'rc-chip rc-no'}
-                        aria-label={`${item.label}: ${yes ? 'included' : 'not included'}`}
-                      >
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                          {item.icon}
-                        </svg>
-                        <span>{item.label}</span>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
 
-              <div className="rc-cta">
-                <div className="rc-fee">
-                  <small>Entry fee</small>₹{r.fee}
+                <div className="rc-cta">
+                  <div className="rc-fee">
+                    <small>Entry fee</small>₹{r.fee}
+                  </div>
+                  <a className="rc-btn" href={href} target="_blank" rel="noopener noreferrer">
+                    Register
+                  </a>
+                  {r.route && (
+                    <button
+                      type="button"
+                      className="rc-map-toggle"
+                      aria-expanded={mapOpen}
+                      aria-controls={`route-${r.key}`}
+                      onClick={() => toggleMap(r.key)}
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Zm0 0v14m6-12v14" />
+                      </svg>
+                      {mapOpen ? 'Hide route' : 'View route'}
+                      <svg className="rc-chev" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
-                <a className="rc-btn" href={href} target="_blank" rel="noopener noreferrer">
-                  Register
-                </a>
-              </div>
-            </article>
+              </article>
+
+              {r.route && mapOpen && (
+                <div className="rc-map-panel" id={`route-${r.key}`}>
+                  <RouteMap route={r.route} title={`${r.distance} ${r.name}`} />
+                </div>
+              )}
+            </div>
           )
         })}
       </section>
