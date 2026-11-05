@@ -6,7 +6,7 @@ import './race-categories.css'
 
 export const metadata: Metadata = {
   title: 'Race Categories | Bikaner Marathon',
-  description: 'Choose your race: 2K Fun Run, 5K Run, 10K Challenge Run or 21K Half Marathon.',
+  description: 'Choose your race: 2K Fun Run, 5K Run, 10K Challenge Run or 21K Half Marathon. Fees, what is included and route maps.',
 }
 
 // Re-check the database at most once a minute, so price changes show up quickly
@@ -17,11 +17,29 @@ const cinzel = Cinzel({ subsets: ['latin'], weight: ['700'], variable: '--font-o
 // What each race is and what it includes.
 // "fee" is only a fallback: the live price comes from the categories table.
 // includes order: T-shirt, BIB, Medal, Refreshments, Prizes (true = included)
+// route: the Strava route embed (from Strava: Share > Embed > copy code).
+//   id = data-embed-id, token = data-token, mapHash = data-map-hash (optional)
 const RACES: Omit<Race, 'categoryId'>[] = [
-  { key: '2k', distance: '2K', name: 'Fun Run', km: 2, fee: 149, tagline: 'For families, kids and first-timers', includes: [true, false, false, false, false] },
-  { key: '5k', distance: '5K', name: 'Run', km: 5, fee: 299, tagline: 'A great first race', includes: [true, true, true, true, true] },
-  { key: '10k', distance: '10K', name: 'Challenge Run', km: 10, fee: 399, tagline: 'For regular runners', includes: [true, true, true, true, true] },
-  { key: '21k', distance: '21K', name: 'Half Marathon', km: 21.1, fee: 499, tagline: 'The big one', includes: [true, true, true, true, true] },
+  {
+    key: '2k', distance: '2K', name: 'Fun Run', km: 2, fee: 149, tagline: 'For families, kids and first-timers',
+    includes: [true, false, false, false, false],
+    route: { id: '3553365707904999996', token: 'OUOjxyLrWzGmGeZBrZJ2NmZT7Q9R1FP0U6WrMIf8rS8', mapHash: '14.21/28.03409/73.32761' },
+  },
+  {
+    key: '5k', distance: '5K', name: 'Run', km: 5, fee: 299, tagline: 'A great first race',
+    includes: [true, true, true, true, true],
+    route: { id: '3553370326444155886', token: 'iPwxjQa7g7a0Qo1sXA8RVQF6SfEBYVg8vQRVj7my-0o', mapHash: '12.79/28.02775/73.32751' },
+  },
+  {
+    key: '10k', distance: '10K', name: 'Challenge Run', km: 10, fee: 399, tagline: 'For regular runners',
+    includes: [true, true, true, true, true],
+    route: { id: '3553365707906200124', token: '5GUEQVY40dlGnyFZoqjqndrviI67uGZQySoqkuflkno' },
+  },
+  {
+    key: '21k', distance: '21K', name: 'Half Marathon', km: 21.1, fee: 499, tagline: 'The big one',
+    includes: [true, true, true, true, true],
+    route: { id: '3553380938691440044', token: 'IFb_bdtI-BDKc1GiIZrTBBbhFwnWnoj54S0At6qv64o', mapHash: '12.09/28.02168/73.36253' },
+  },
 ]
 
 type CategoryRow = { id: string; name: string; price_paise: number }
@@ -63,11 +81,6 @@ export default async function RaceCategoriesPage() {
       </section>
 
       <RaceList races={races} />
-
-      <section className="rc-route">
-        <h2>Race Routes</h2>
-        <p>Coming soon</p>
-      </section>
     </main>
   )
 }

@@ -33,7 +33,7 @@
 .rc-track { position: relative; padding-bottom: 18px; }
 .rc-lane { height: 8px; border-radius: 99px; background: #f3e7dd; position: relative; }
 .rc-fill { position: relative; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--peach, #cda793), var(--terracotta, #bb5b37)); transition: width 1.3s cubic-bezier(.3, .7, .2, 1) var(--d, 0ms); }
-.rc-race.rc-in .rc-fill { width: var(--w); }
+.rc-item.rc-in .rc-fill { width: var(--w); }
 .rc-runner { position: absolute; right: -7px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: #fff; border: 3px solid var(--terracotta, #bb5b37); box-shadow: 0 0 0 4px rgba(187, 91, 55, .15); }
 .rc-ticks { position: absolute; left: 0; right: 0; top: 12px; height: 12px; }
 .rc-ticks i { position: absolute; transform: translateX(-50%); font-style: normal; font-weight: 500; font-size: 11px; color: #b3a196; white-space: nowrap; }
@@ -48,7 +48,9 @@
 .rc-chip.rc-no span { text-decoration: line-through; }
 
 /* fee and button */
-.rc-cta { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.rc-cta { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+.rc-cta .rc-fee { text-align: right; }
+.rc-cta .rc-btn, .rc-cta .rc-map-toggle { justify-content: center; text-align: center; }
 .rc-fee { font-family: var(--font-heading), sans-serif; font-weight: 800; font-size: 28px; line-height: 1; text-align: right; }
 .rc-fee small { display: block; font-family: var(--font-body), sans-serif; font-weight: 500; font-size: 12px; color: var(--rc-muted); margin-bottom: 4px; }
 .rc-btn { display: inline-block; background: var(--terracotta, #bb5b37); color: #fff; font-family: var(--font-heading), sans-serif; font-weight: 600; font-size: 15px; padding: 10px 22px; border-radius: 999px; text-decoration: none; transition: background .2s; }
@@ -71,9 +73,35 @@
 .rc-soon { margin-left: auto; flex: none; font-family: var(--font-heading), sans-serif; font-weight: 600; font-size: 13px; padding: 7px 14px; border-radius: 99px; background: rgba(74, 36, 8, .12); border: 1px solid rgba(74, 36, 8, .25); }
 
 .rc-note { max-width: 1080px; margin: 18px auto 0; padding: 0 clamp(14px, 3vw, 28px); font-size: 13px; color: var(--rc-muted); text-align: center; }
-.rc-route { text-align: center; padding: 56px 18px; margin-top: 48px; background: #f5e9de; }
-.rc-route h2 { font-family: var(--font-heading), sans-serif; font-weight: 800; font-size: clamp(24px, 4vw, 34px); }
-.rc-route p { margin-top: 6px; color: #6b5a50; }
+.rc-page { padding-bottom: clamp(48px, 7vw, 72px); }
+
+/* route map, opened under its race card */
+.rc-map-toggle {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;
+  padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--terracotta, #bb5b37);
+  background: #fbefe6; color: var(--rust, #8f3f22);
+  font-family: var(--font-heading), sans-serif; font-weight: 600; font-size: 14px;
+  transition: background .2s, color .2s, box-shadow .2s;
+  animation: rc-nudge 3.2s ease-in-out 1.5s infinite;
+}
+.rc-map-toggle:hover { background: var(--terracotta, #bb5b37); color: #fff; box-shadow: 0 6px 16px -8px rgba(143, 63, 34, .7); }
+.rc-map-toggle[aria-expanded="true"] { background: var(--terracotta, #bb5b37); color: #fff; animation: none; }
+.rc-map-toggle:focus-visible { outline: 3px solid var(--sun, #e8a33d); outline-offset: 2px; }
+.rc-map-toggle svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+.rc-map-toggle .rc-chev { width: 15px; height: 15px; stroke-width: 2.4; transition: transform .25s; }
+.rc-map-toggle[aria-expanded="true"] .rc-chev { transform: rotate(180deg); }
+/* a soft glow every few seconds, so people notice the button */
+@keyframes rc-nudge { 0%, 70%, 100% { box-shadow: 0 0 0 0 rgba(187, 91, 55, 0); } 80% { box-shadow: 0 0 0 6px rgba(187, 91, 55, .18); } 92% { box-shadow: 0 0 0 10px rgba(187, 91, 55, 0); } }
+.rc-race.rc-open { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.rc-map-panel {
+  background: #fff; border: 1px solid #efe2d7; border-top: 1px dashed #ecdccf; border-radius: 0 0 18px 18px;
+  padding: clamp(10px, 2vw, 18px); animation: rc-drop .35s ease;
+}
+@keyframes rc-drop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.rc-map { min-height: 420px; border-radius: 12px; overflow: hidden; background: #f3e7dd; }
+.rc-map iframe { display: block; width: 100%; border: 0; }
+.rc-map-error { padding: 24px; text-align: center; color: var(--rc-muted); font-size: 14px; }
+.rc-map-error a { color: var(--terracotta, #bb5b37); font-weight: 600; }
 
 /* fade in on scroll */
 .rc-reveal { opacity: 0; transform: translateY(16px); transition: opacity .6s ease var(--d, 0ms), transform .6s ease var(--d, 0ms); }
@@ -86,7 +114,7 @@
 @media (max-width: 480px) {
   .rc-race { padding: 16px; }
   .rc-id { gap: 12px; } .rc-dist { font-size: 32px; min-width: 2.1em; } .rc-race h3 { font-size: 16px; } .rc-tag { font-size: 12.5px; }
-  .rc-cta { gap: 8px; } .rc-fee { font-size: 22px; } .rc-btn { font-size: 14px; padding: 8px 16px; }
+  .rc-cta { gap: 8px; } .rc-fee { font-size: 22px; } .rc-btn { font-size: 14px; padding: 8px 16px; } .rc-map-toggle { font-size: 13px; padding: 7px 12px; }
   .rc-chip { font-size: 12px; padding: 4px 9px 4px 7px; }
   .rc-premium-in { flex-wrap: wrap; gap: 12px; } .rc-soon { margin-left: 62px; }
 }
