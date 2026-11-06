@@ -37,19 +37,63 @@ function Camel({ delay }: { delay: number }) {
   )
 }
 
-// Herder in white kurta and dhoti, white pagdi, with a lathi
+// Herder: big colourful pagdi, handlebar mustache, kurta, white dhoti, red juttis, with a lathi
 function Herder() {
   return (
-    <svg className="bm-herder" viewBox="0 0 40 100" aria-hidden="true" style={{ '--d': '0s' } as CSSProperties}>
-      <line x1="33" y1="34" x2="40" y2="98" className="bm-lathi" />
-      <g className="bm-leg a"><rect x="15" y="62" width="6" height="34" rx="2" className="bm-white" /></g>
-      <g className="bm-leg b"><rect x="21" y="62" width="6" height="34" rx="2" className="bm-white" /></g>
-      <path d="M11,26 C11,22 31,22 31,26 L33,66 L9,66 Z" className="bm-white" />
-      <path d="M26,30 L35,36" className="bm-arm" />
-      <circle cx="21" cy="17" r="6" className="bm-skin" />
-      <path d="M15,13 C15,5 28,4 28,12 C30,13 29,16 26,15 C22,13 18,13 15,15 Z" className="bm-white" />
-      <path d="M27,12 C33,12 34,18 31,22" className="bm-pagdi-tail" />
-      <path d="M18,20 q3,2 6,0" className="bm-mustache" />
+    <svg className="bm-herder" viewBox="0 0 44 104" aria-hidden="true" style={{ '--d': '0s' } as CSSProperties}>
+      <defs>
+        <clipPath id="bm-pagdi-clip">
+          <path d="M12.5,16 C9,10 13,3.2 22,2.6 C31,2 35.5,8 33,15 C28,12.6 18,12.6 12.5,16 Z" />
+        </clipPath>
+      </defs>
+      {/* lathi */}
+      <line x1="35" y1="34" x2="42" y2="100" className="bm-lathi" />
+      {/* legs: white dhoti and red juttis with curled toes */}
+      <g className="bm-leg a">
+        <path d="M14.5,62 h8 l-0.5,31 h-7 z" className="bm-dhoti" />
+        <path d="M14,92.5 h8.5 c2.6,0 4.4,-0.8 5.6,-3.4 c0.4,3.4 -1.2,6.4 -5,6.4 h-9.1 z" className="bm-jutti" />
+      </g>
+      <g className="bm-leg b">
+        <path d="M21,62 h8 l-0.5,31 h-7 z" className="bm-dhoti" />
+        <path d="M20.5,92.5 h8.5 c2.6,0 4.4,-0.8 5.6,-3.4 c0.4,3.4 -1.2,6.4 -5,6.4 h-9.1 z" className="bm-jutti" />
+      </g>
+      {/* kurta */}
+      <path d="M11,27 C11,23 32,23 32,27 L34.5,66 L8.5,66 Z" className="bm-kurta" />
+      <path d="M21.5,25 V40" className="bm-kurta-line" />
+      {/* arm holding the lathi */}
+      <path d="M27,31 L36,38" className="bm-arm" />
+      <circle cx="36.4" cy="38.4" r="2.1" className="bm-skin" />
+      {/* head, ear, eyes */}
+      <rect x="18.5" y="21" width="6" height="4" className="bm-skin" />
+      <circle cx="21.5" cy="17.5" r="6.2" className="bm-skin" />
+      <circle cx="15.6" cy="18" r="1.4" className="bm-skin" />
+      <circle cx="20" cy="16.4" r="0.75" className="bm-eye" />
+      <circle cx="24.4" cy="16.4" r="0.75" className="bm-eye" />
+      {/* big handlebar mustache */}
+      <path
+        d="M22.2,19.6 c-1.4,-0.6 -3,-0.5 -4.1,0.4 c-1.1,0.9 -2.4,1 -3.6,0 c0.2,1.9 1.8,3 3.6,2.6 c1.8,-0.3 3.1,-1.3 4.1,-1.6 c1,0.3 2.3,1.3 4.1,1.6 c1.8,0.4 3.4,-0.7 3.6,-2.6 c-1.2,1 -2.5,0.9 -3.6,0 c-1.1,-0.9 -2.7,-1 -4.1,-0.4 z"
+        className="bm-mustache"
+      />
+      {/* big colourful pagdi: rounded, wider than the head, striped bands */}
+      <g clipPath="url(#bm-pagdi-clip)">
+        <rect x="6" y="-10" width="34" height="30" fill="#c0392b" />
+        <path d="M6,-1.0 L40,-10.0 L40,-7.1 L6,1.9 Z" fill="#6b2d5c" />
+        <path d="M6,1.9 L40,-7.1 L40,-4.2 L6,4.8 Z" fill="#2e8b57" />
+        <path d="M6,4.8 L40,-4.2 L40,-1.3 L6,7.7 Z" fill="#f2b632" />
+        <path d="M6,7.7 L40,-1.3 L40,1.6 L6,10.6 Z" fill="#c0392b" />
+        <path d="M6,10.6 L40,1.6 L40,4.5 L6,13.5 Z" fill="#2e8b57" />
+        <path d="M6,13.5 L40,4.5 L40,7.4 L6,16.4 Z" fill="#e67e22" />
+        <path d="M6,16.4 L40,7.4 L40,10.3 L6,19.3 Z" fill="#6b2d5c" />
+        <path d="M6,19.3 L40,10.3 L40,13.2 L6,22.2 Z" fill="#f2b632" />
+        <path d="M6,22.2 L40,13.2 L40,16.1 L6,25.1 Z" fill="#c0392b" />
+        <path d="M6,25.1 L40,16.1 L40,19.0 L6,28.0 Z" fill="#e67e22" />
+        <path d="M6,28.0 L40,19.0 L40,21.9 L6,30.9 Z" fill="#2e8b57" />
+      </g>
+      <path
+        d="M12.5,16 C9,10 13,3.2 22,2.6 C31,2 35.5,8 33,15 C28,12.6 18,12.6 12.5,16 Z"
+        className="bm-pagdi-edge"
+      />
+      <path d="M13,15.2 C18,12.8 27.5,12.6 32.6,14.6" className="bm-pagdi-fold" />
     </svg>
   )
 }

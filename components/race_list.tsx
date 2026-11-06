@@ -43,6 +43,15 @@ const ITEMS: { label: string; icon: ReactNode }[] = [
   },
   { label: 'Refreshments', icon: <path d="M9 2h6M10 2v3l-2 3v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V8l-2-3V2M8 12h8" /> },
   { label: 'Prizes', icon: <path d="M7 4h10v5a5 5 0 0 1-10 0V4ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8M9 18h6" /> },
+  {
+    label: 'Breakfast',
+    icon: (
+      <>
+        <path d="M4 10h12v4a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-4ZM16 11h1.5a2.5 2.5 0 0 1 0 5H15.5" />
+        <path d="M8 3.5c-.8 1 .8 2 0 3M12 3.5c-.8 1 .8 2 0 3M3 21h14" />
+      </>
+    ),
+  },
 ]
 
 export default function RaceList({ races }: { races: Race[] }) {
@@ -178,8 +187,6 @@ export default function RaceList({ races }: { races: Race[] }) {
           <span className="rc-soon">Opening soon</span>
         </div>
       </section>
-
-      <p className="rc-note">Breakfast is not provided.</p>
     </div>
   )
 }

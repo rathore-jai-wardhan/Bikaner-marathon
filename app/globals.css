@@ -119,13 +119,18 @@ h1, h2, h3, .heading-font {
 .bm-unit { width: clamp(78px, 11.5vw, 138px); overflow: visible; }
 .bm-camel path { fill: #5b3a26; }
 .bm-camel .bm-tail { fill: none; stroke: #5b3a26; }
-.bm-herder { width: clamp(30px, 4.3vw, 50px); overflow: visible; margin-left: clamp(4px, 1vw, 10px); }
-.bm-white { fill: #fffdf8; stroke: #c9b7a6; stroke-width: 1; }
+.bm-herder { width: clamp(33px, 4.7vw, 55px); overflow: visible; margin-left: clamp(4px, 1vw, 10px); }
 .bm-skin { fill: #8a5a3c; }
 .bm-lathi { stroke: #6b4a2f; stroke-width: 2.4; stroke-linecap: round; }
-.bm-arm { stroke: #fffdf8; stroke-width: 5; stroke-linecap: round; }
-.bm-pagdi-tail { fill: none; stroke: #fffdf8; stroke-width: 3; stroke-linecap: round; }
-.bm-mustache { fill: none; stroke: #2b1c12; stroke-width: 1.6; }
+.bm-arm { stroke: #b9ad9a; stroke-width: 5; stroke-linecap: round; }
+.bm-mustache { fill: #1f1a17; }
+.bm-kurta { fill: #b9ad9a; stroke: #8f8371; stroke-width: 0.8; }
+.bm-kurta-line { fill: none; stroke: #8f8371; stroke-width: 0.8; }
+.bm-dhoti { fill: #fbf7ee; stroke: #cfc3b3; stroke-width: 0.8; }
+.bm-jutti { fill: #b3261e; stroke: #e2a33a; stroke-width: 0.6; }
+.bm-eye { fill: #1f1612; }
+.bm-pagdi-edge { fill: none; stroke: #5e1d14; stroke-width: 0.7; }
+.bm-pagdi-fold { fill: none; stroke: rgba(60, 20, 10, .45); stroke-width: 0.8; }
 .bm-leg { transform-box: fill-box; transform-origin: 50% 0; }
 .bm-sand { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #f3dcc4; opacity: 0.8; }
 
