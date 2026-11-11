@@ -182,11 +182,12 @@ export default function RaceList({ races }: { races: Race[] }) {
           </div>
           <div>
             <div className="rc-ex">★ EXCLUSIVE ★</div>
-            <h3>Premium Registration</h3>
+            <h3>Premium Add On</h3>
           </div>
           <span className="rc-soon">Opening soon</span>
         </div>
       </section>
+      <p className="rc-note">* It is an optional add-on. Register for any race as usual, then pay a little extra to get exclusive extras.</p>
     </div>
   )
 }
