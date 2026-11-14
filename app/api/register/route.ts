@@ -31,7 +31,7 @@ function ageOn(dob: string, onDate: string): number {
 // Ambassador referral codes: AMB- + first name (letters only) + last 4 digits of their phone
 const REFERRAL_PATTERN = /^AMB-[A-Z]{2,20}[0-9]{4}$/;
 const REFERRAL_FORMAT_MESSAGE =
-  "Please check the referral code (for example AMB-JAI3210), or leave it empty.";
+  "Enter a valid code";
 
 const schema = z.object({
   categoryId: z.string().trim().min(1).max(10),

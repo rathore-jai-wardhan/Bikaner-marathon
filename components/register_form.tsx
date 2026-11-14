@@ -205,7 +205,7 @@ export default function RegisterForm({
     if (!isBloodGroup(form.bloodGroup)) errs.bloodGroup = "Please select the blood group.";
     const referral = form.referralCode.trim().toUpperCase();
     if (referral && !REFERRAL_PATTERN.test(referral)) {
-      errs.referralCode = "Please check the referral code (for example AMB-JAI3210), or leave it empty.";
+      errs.referralCode = "Enter a valid code";
     }
 
     if (!form.consentTerms)
@@ -445,7 +445,7 @@ export default function RegisterForm({
         </select>
         {/^\s*2K\b/i.test(selected.name) && (
           <p className="mt-1 text-sm text-red-700">
-            * Only a T-shirt is provided for the 2K. No medal, no refreshments, no breakfast, no BIB and no prize.
+            *Only a T-shirt is provided for the 2K run. No medal, no refreshments, no breakfast, no BIB and no prize.
           </p>
         )}
       </div>
@@ -614,12 +614,8 @@ export default function RegisterForm({
       <div>
         <label className={labelClass} htmlFor="referralCode">Referral code (optional)</label>
         <input id="referralCode" maxLength={30} autoComplete="off" autoCapitalize="characters"
-          placeholder="e.g. AMB-JAI3210"
           className={inputFor("referralCode")} value={form.referralCode}
           onChange={(e) => set("referralCode", e.target.value.toUpperCase().replace(/\s/g, ""))} />
-        <p className="mt-1 text-xs text-gray-500">
-          Invited by a Bikaner Marathon ambassador? Enter their code exactly as they shared it.
-        </p>
         {fieldError("referralCode")}
       </div>
 
