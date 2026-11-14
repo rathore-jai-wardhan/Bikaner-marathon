@@ -28,6 +28,11 @@ function ageOn(dob: string, onDate: string): number {
   return age;
 }
 
+// Ambassador referral codes: AMB- + first name (letters only) + last 4 digits of their phone
+const REFERRAL_PATTERN = /^AMB-[A-Z]{2,20}[0-9]{4}$/;
+const REFERRAL_FORMAT_MESSAGE =
+  "Please check the referral code (for example AMB-JAI3210), or leave it empty.";
+
 const schema = z.object({
   categoryId: z.string().trim().min(1).max(10),
   fullName: z
@@ -59,6 +64,14 @@ const schema = z.object({
   guardianName: z.string().max(200).default("").transform(tidy),
   guardianPhone: z.string().trim().max(30).default(""),
   guardianEmail: z.string().trim().toLowerCase().max(200).default(""),
+  // Optional ambassador referral code. Format: AMB- + first name + last 4 digits of the
+  // ambassador's phone, e.g. AMB-JAI3210. Stored in capitals. No discount, only tracking.
+  referralCode: z
+    .string()
+    .max(40)
+    .default("")
+    .transform((v) => v.replace(/\s/g, "").toUpperCase())
+    .refine((v) => v === "" || REFERRAL_PATTERN.test(v), REFERRAL_FORMAT_MESSAGE),
   consentTerms: z
     .boolean()
     .refine((v) => v === true, "Please accept the Terms, Privacy and Refund policies to continue."),
@@ -241,7 +254,7 @@ export async function POST(request: Request) {
         category_id, full_name, date_of_birth, gender, phone, email, city, state,
         tshirt_size, emergency_name, emergency_phone, blood_group,
         guardian_name, guardian_phone, guardian_email, consent_terms, consent_messages,
-        consent_updates, amount_paise, status
+        consent_updates, amount_paise, status, referral_code
       )
       select
         ${d.categoryId}, ${d.fullName}, ${d.dateOfBirth}::date, ${d.gender},
@@ -253,7 +266,7 @@ export async function POST(request: Request) {
         -- Confirmations are part of registering, so they are always sent.
         -- The marketing opt-in was removed from the form, so it is always false.
         true, false,
-        ${category.price_paise}::integer, ${startStatus}::text
+        ${category.price_paise}::integer, ${startStatus}::text, ${d.referralCode || null}::text
       where (
         select count(*) from registrations
         where category_id = ${d.categoryId}

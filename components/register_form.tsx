@@ -10,8 +10,11 @@ import { BLOOD_GROUPS, cityProblem, emailProblem, isBloodGroup, MIN_AGE, namePro
 const FIELD_ORDER = [
   "fullName", "dateOfBirth", "state", "city", "tshirtSize",
   "phone", "email", "guardianName", "guardianPhone", "guardianEmail",
-  "emergencyName", "emergencyPhone", "bloodGroup", "consentTerms",
+  "emergencyName", "emergencyPhone", "bloodGroup", "referralCode", "consentTerms",
 ];
+
+// Ambassador referral codes: AMB- + first name + last 4 digits of the ambassador's phone, e.g. AMB-JAI3210
+const REFERRAL_PATTERN = /^AMB-[A-Z]{2,20}[0-9]{4}$/;
 
 type Category = {
   id: string;
@@ -63,9 +66,11 @@ function loadRazorpay(): Promise<RazorpayWindow | null> {
 export default function RegisterForm({
   categories,
   initialCategoryId,
+  initialReferralCode = "",
 }: {
   categories: Category[];
   initialCategoryId: string;
+  initialReferralCode?: string;
 }) {
   const firstCategory =
     categories.find((c) => c.id === initialCategoryId) ?? categories[0];
@@ -86,6 +91,7 @@ export default function RegisterForm({
     guardianName: "",
     guardianPhone: "",
     guardianEmail: "",
+    referralCode: initialReferralCode,
     consentTerms: false,
   });
   const [status, setStatus] = useState<
@@ -197,6 +203,10 @@ export default function RegisterForm({
       errs.emergencyPhone = "The emergency contact number must be different from your own number.";
 
     if (!isBloodGroup(form.bloodGroup)) errs.bloodGroup = "Please select the blood group.";
+    const referral = form.referralCode.trim().toUpperCase();
+    if (referral && !REFERRAL_PATTERN.test(referral)) {
+      errs.referralCode = "Please check the referral code (for example AMB-JAI3210), or leave it empty.";
+    }
 
     if (!form.consentTerms)
       errs.consentTerms = "Please accept the Terms, Privacy and Refund policies to continue.";
@@ -433,6 +443,11 @@ export default function RegisterForm({
             </option>
           ))}
         </select>
+        {/^\s*2K\b/i.test(selected.name) && (
+          <p className="mt-1 text-sm text-red-700">
+            * Only a T-shirt is provided for the 2K. No medal, no refreshments, no breakfast, no BIB and no prize.
+          </p>
+        )}
       </div>
 
       <div>
@@ -594,6 +609,18 @@ export default function RegisterForm({
           ))}
         </select>
         {fieldError("bloodGroup")}
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="referralCode">Referral code (optional)</label>
+        <input id="referralCode" maxLength={30} autoComplete="off" autoCapitalize="characters"
+          placeholder="e.g. AMB-JAI3210"
+          className={inputFor("referralCode")} value={form.referralCode}
+          onChange={(e) => set("referralCode", e.target.value.toUpperCase().replace(/\s/g, ""))} />
+        <p className="mt-1 text-xs text-gray-500">
+          Invited by a Bikaner Marathon ambassador? Enter their code exactly as they shared it.
+        </p>
+        {fieldError("referralCode")}
       </div>
 
       <div>

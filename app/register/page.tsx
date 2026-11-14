@@ -6,9 +6,11 @@ export const dynamic = "force-dynamic";
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; ref?: string }>;
 }) {
-  const { category } = await searchParams;
+  const { category, ref } = await searchParams;
+  // An ambassador can share a link like /register?ref=AMB-JAI3210 that fills in their code
+  const initialReferralCode = (ref ?? "").toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 30);
 
   const categories = (await sql`
     select id, name, price_paise, max_age, tshirt_sizes
@@ -42,6 +44,7 @@ export default async function RegisterPage({
       <RegisterForm
         categories={categories}
         initialCategoryId={initialCategoryId}
+        initialReferralCode={initialReferralCode}
       />
     </main>
   );
