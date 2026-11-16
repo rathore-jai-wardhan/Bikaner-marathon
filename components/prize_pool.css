@@ -1,0 +1,51 @@
+/* Prize money section on the home page (components/prize_pool.tsx) */
+.pp {
+  position: relative; overflow: hidden;
+  background: #b0512f url("/prize/bandhani.svg") 0 0 / 260px 260px;
+  padding: clamp(48px, 8vw, 90px) clamp(16px, 4vw, 40px);
+  box-shadow: inset 0 14px 22px -14px rgba(60, 20, 5, .55), inset 0 -14px 22px -14px rgba(60, 20, 5, .55);
+}
+.pp-in-wrap { position: relative; max-width: 1000px; margin: 0 auto; }
+
+/* a tear: rim = frayed fabric edge, hole = what shows through */
+.pp-tear { position: relative; transform: rotate(var(--rot, 0deg)); filter: drop-shadow(0 10px 14px rgba(45, 12, 2, .45)); }
+.pp-rim {
+  position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .55) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(150, 70, 40, .25) 0 1px, transparent 1px 3px),
+    linear-gradient(135deg, #f3d2bb, #e7b495 60%, #efc7ab);
+}
+.pp-hole { position: relative; background: radial-gradient(ellipse at 50% 38%, #fffaf4 0%, #f8ecdf 62%, #efd9c4 100%); box-shadow: inset 0 0 30px 6px rgba(120, 55, 20, .32); }
+.pp-hole-in { text-align: center; }
+.pp-num { font-variant-numeric: tabular-nums; }
+
+/* big tear: total + men / women */
+.pp-big { max-width: 720px; margin: 0 auto; }
+.pp-big .pp-hole-in { padding: clamp(46px, 7vw, 70px) 26px clamp(44px, 7vw, 64px); }
+.pp-lbl { font-family: var(--font-heading), sans-serif; font-weight: 700; font-size: clamp(12px, 1.6vw, 14px); letter-spacing: 3px; text-transform: uppercase; color: var(--terracotta, #bb5b37); }
+.pp-total { font-family: var(--font-heading), sans-serif; font-weight: 900; font-size: clamp(54px, 12vw, 112px); line-height: 1; color: var(--rust, #8f3f22); letter-spacing: -2px; margin-top: 8px; }
+.pp-r { font-weight: 700; font-size: .66em; vertical-align: .16em; margin-right: 6px; }
+.pp-genders { display: flex; justify-content: center; align-items: center; gap: clamp(18px, 4vw, 40px); margin-top: clamp(18px, 3vw, 26px); }
+.pp-g-lbl { font-family: var(--font-heading), sans-serif; font-weight: 600; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #9a7a68; }
+.pp-g-num { font-family: var(--font-heading), sans-serif; font-weight: 800; font-size: clamp(24px, 3.6vw, 34px); color: var(--charcoal, #3a3a3a); margin-top: 2px; }
+.pp-g-sep { width: 1.5px; height: 46px; background: linear-gradient(transparent, #d9b49a, transparent); }
+
+/* race tears */
+.pp-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(22px, 3.4vw, 40px); margin-top: clamp(36px, 5vw, 56px); }
+.pp-sm .pp-hole-in { padding: clamp(34px, 4vw, 42px) 18px; }
+.pp-cat { font-family: var(--font-heading), sans-serif; font-weight: 600; font-size: 15px; color: #6b5348; }
+.pp-cat b { font-weight: 800; color: var(--terracotta, #bb5b37); font-size: 22px; margin-right: 3px; }
+.pp-cat-sub { font-family: var(--font-heading), sans-serif; font-weight: 600; font-size: 11.5px; letter-spacing: 2px; text-transform: uppercase; color: #a8897a; margin-top: 2px; }
+.pp-pool { font-family: var(--font-heading), sans-serif; font-weight: 800; font-size: clamp(30px, 3.8vw, 38px); color: var(--rust, #8f3f22); line-height: 1.1; margin-top: 6px; }
+
+/* tears open as they scroll into view */
+.pp-reveal { opacity: 0; transform: rotate(var(--rot, 0deg)) scale(.84); transition: opacity .7s ease var(--d, 0ms), transform 1s cubic-bezier(.2, .9, .25, 1.15) var(--d, 0ms); }
+.pp-reveal.pp-in { opacity: 1; transform: rotate(var(--rot, 0deg)) scale(1); }
+
+@media (max-width: 760px) {
+  .pp-row { grid-template-columns: 1fr; max-width: 340px; margin-left: auto; margin-right: auto; gap: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-reveal { opacity: 1; transform: rotate(var(--rot, 0deg)); transition: none; }
+}
