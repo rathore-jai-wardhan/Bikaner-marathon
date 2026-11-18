@@ -4,13 +4,16 @@ import { useEffect, useRef, type CSSProperties } from "react";
 import "./prize_pool.css";
 
 // Prize money shown on the home page. Change the amounts here (in rupees).
-const MEN_TOTAL = 250000;
-const WOMEN_TOTAL = 250000;
+// men / women = [1st, 2nd, 3rd]. Every total on the section is worked out from these.
 const RACES = [
-  { distance: "21K", name: "Half Marathon", pool: 250000 },
-  { distance: "10K", name: "Challenge Run", pool: 150000 },
-  { distance: "5K", name: "Run", pool: 100000 },
+  { distance: "21K", name: "Half Marathon", men: [60000, 40000, 25000], women: [60000, 40000, 25000] },
+  { distance: "10K", name: "Run", men: [36000, 24000, 15000], women: [36000, 24000, 15000] },
+  { distance: "5K", name: "Run", men: [24000, 16000, 10000], women: [24000, 16000, 10000] },
 ];
+const PLACES = ["1st", "2nd", "3rd"];
+const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
+const MEN_TOTAL = sum(RACES.map((r) => sum(r.men)));
+const WOMEN_TOTAL = sum(RACES.map((r) => sum(r.women)));
 const TOTAL = MEN_TOTAL + WOMEN_TOTAL;
 
 // Torn-cloth outlines (generated once). "rim" = frayed fabric edge, "hole" = the opening.
@@ -129,7 +132,25 @@ export default function PrizePool() {
                       <b>{r.distance}</b> {r.name}
                     </div>
                     <div className="pp-cat-sub">Prize Pool</div>
-                    <div className="pp-pool">₹<Amount value={r.pool} /></div>
+                    <div className="pp-pool">₹<Amount value={sum(r.men) + sum(r.women)} /></div>
+                    <table className="pp-podium">
+                      <thead>
+                        <tr>
+                          <th scope="col"><span className="pp-sr">Position</span></th>
+                          <th scope="col">Men</th>
+                          <th scope="col">Women</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {PLACES.map((place, i) => (
+                          <tr key={place} className={i === 0 ? "pp-gold" : undefined}>
+                            <th scope="row">{place}</th>
+                            <td>₹<Amount value={r.men[i]} /></td>
+                            <td>₹<Amount value={r.women[i]} /></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
